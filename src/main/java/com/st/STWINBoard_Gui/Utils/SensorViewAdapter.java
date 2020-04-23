@@ -13,8 +13,8 @@ import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.st.BlueMS.R;
 import com.st.BlueSTSDK.HSDatalog.Sensor;
+import com.st.clab.stwin.gui.R;
 
 import java.util.List;
 

@@ -17,11 +17,11 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.st.BlueMS.R;
 import com.st.BlueSTSDK.HSDatalog.DescriptorParam;
 import com.st.BlueSTSDK.HSDatalog.StatusParam;
 import com.st.BlueSTSDK.HSDatalog.SubSensorDescriptor;
 import com.st.BlueSTSDK.HSDatalog.SubSensorStatus;
+import com.st.clab.stwin.gui.R;
 
 import java.util.List;
 

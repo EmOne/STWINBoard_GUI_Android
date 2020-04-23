@@ -3,9 +3,7 @@ package com.st.STWINBoard_Gui.Utils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.st.BlueMS.demos.aiDataLog.repository.Annotation;
-
-public class HSDAnnotation extends Annotation {
+public class HSDAnnotation {
 
     public enum TagType {
         HW,
@@ -21,8 +19,11 @@ public class HSDAnnotation extends Annotation {
     @NonNull
     private TagType tagType;
 
+    private boolean isSelected;
+    private boolean isEditable;
+    private boolean isLocked;
+
     public HSDAnnotation(int id,@NonNull String label, @Nullable String pinDesc, @NonNull TagType tagType) {
-        super(label);
         this.label = label;
         this.id = id;
         this.pinDesc = pinDesc;
@@ -63,4 +64,30 @@ public class HSDAnnotation extends Annotation {
     public void setTagType(@NonNull TagType tagType) {
         this.tagType = tagType;
     }
+
+    public void setLocked(boolean locked) {
+        isLocked = locked;
+    }
+
+    public void setSelected(boolean isSelected){
+        this.isSelected=isSelected;
+    }
+
+    public void setEditable(boolean editable) {
+        isEditable = editable;
+    }
+
+    public boolean isLocked() {
+        return this.isLocked;
+    }
+
+    public boolean isSelected() {
+        return isSelected;
+    }
+
+    public boolean isEditable() {
+        return isEditable;
+    }
+
+
 }

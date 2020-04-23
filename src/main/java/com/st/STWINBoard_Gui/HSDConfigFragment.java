@@ -38,11 +38,11 @@
 package com.st.STWINBoard_Gui;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -67,42 +67,38 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.widget.AppCompatImageView;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.st.BlueMS.R;
-import com.st.BlueMS.demos.HSDatalog.Control.DeviceManager;
-import com.st.BlueMS.demos.HSDatalog.HSDTaggingFragment.HSDInteractionCallback;
+import com.st.BlueSTSDK.Feature;
+import com.st.BlueSTSDK.Features.FeatureHSDatalogConfig;
 import com.st.BlueSTSDK.HSDatalog.Device;
 import com.st.BlueSTSDK.HSDatalog.Sensor;
 import com.st.BlueSTSDK.HSDatalog.SensorStatus;
 import com.st.BlueSTSDK.HSDatalog.StatusParam;
 import com.st.BlueSTSDK.HSDatalog.SubSensorStatus;
-import com.st.BlueMS.demos.HSDatalog.Utils.SensorViewAdapter;
-import com.st.BlueMS.demos.util.BaseDemoFragment;
-import com.st.BlueSTSDK.Feature;
-import com.st.BlueSTSDK.Features.FeatureHSDatalogConfig;
 import com.st.BlueSTSDK.Node;
-import com.st.BlueSTSDK.gui.demos.DemoDescriptionAnnotation;
+import com.st.STWINBoard_Gui.Control.DeviceManager;
+import com.st.STWINBoard_Gui.HSDTaggingFragment.HSDInteractionCallback;
+import com.st.STWINBoard_Gui.Utils.SensorViewAdapter;
+import com.st.clab.stwin.gui.R;
 
-import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.FileNotFoundException;
+import java.io.BufferedReader;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Iterator;
 
 /**
- * Demo used to
+ *
  */
-@DemoDescriptionAnnotation(name = "STWIN Config", iconRes = R.drawable.ic_placeholder,
-        requareAll ={FeatureHSDatalogConfig.class})
-public class HSDConfigFragment extends BaseDemoFragment {
+
+public class HSDConfigFragment extends Fragment {
 
     private static String STWIN_CONFIG_FRAGMENT_TAG = HSDConfigFragment.class.getName()+".STWIN_CONFIG_FRAGMENT_TAG";
     private static int PICKFILE_REQUEST_CODE = 7777;
@@ -110,15 +106,9 @@ public class HSDConfigFragment extends BaseDemoFragment {
     private DeviceManager deviceManager;
 
     private RecyclerView recyclerView;
-
     private TextView mDeviceAlias;
     private TextView mDeviceSerialNumber;
     private SensorViewAdapter mSensorsAdapter;
-
-    private AppCompatImageView cpuUsageIcon;
-    private TextView cpuUsageValue;
-    private AppCompatImageView batteryLevelIcon;
-    private TextView batteryLevelValue;
 
     private Button mLoadConfigButton;
     private Button mSaveConfigButton;
@@ -139,9 +129,7 @@ public class HSDConfigFragment extends BaseDemoFragment {
 
     LoadConfTask mLoadConfTask;
 
-    //NOTE new char
     private FeatureHSDatalogConfig mSTWINConf;
-    //private Debug mConsole;
 
     /**
      * listener for the STWIN Conf feature, it will
@@ -197,14 +185,11 @@ public class HSDConfigFragment extends BaseDemoFragment {
                                     });
                                 }
                                 break;*/
-                                case "performance":
-                                    UpdateStatsTask mUpdateStatsTask = new UpdateStatsTask();
-                                    mUpdateStatsTask.execute(jsonObj);
-                                    break;
                                 case "logstatus":
                                     boolean isLogging = jsonObj.getBoolean("isLogging");
                                     deviceManager.setIsLogging(isLogging);
-                                    updateGui(() -> {
+                                    //NOTE - check this
+                                    //updateGui(() -> {
                                         startMenuItem.setVisible(!isLogging);
                                         stopMenuItem.setVisible(isLogging);
                                         if(isLogging) {
@@ -216,7 +201,7 @@ public class HSDConfigFragment extends BaseDemoFragment {
                                         }
                                         else
                                             unobscureConfig(mMaskView,dataImageView);
-                                    });
+                                    //});
                                     break;
                             }
                             break;
@@ -305,6 +290,18 @@ public class HSDConfigFragment extends BaseDemoFragment {
 
     //NOTE /////////////////////////////////////////////////////////////////////////////////////////////
 
+    private String iStreamToString(InputStream is) throws IOException {
+        InputStreamReader isReader = new InputStreamReader(is);
+        //Creating a BufferedReader object
+        BufferedReader reader = new BufferedReader(isReader);
+        StringBuffer sb = new StringBuffer();
+        String str;
+        while((str = reader.readLine())!= null){
+            sb.append(str);
+        }
+        return sb.toString();
+    }
+
     public class LoadJSONTask extends AsyncTask<Uri, Void, JSONObject> {
         @Override
         protected JSONObject doInBackground(Uri... uris) {
@@ -313,15 +310,11 @@ public class HSDConfigFragment extends BaseDemoFragment {
             InputStream inputStream = null;
             try {
                 inputStream = getActivity().getContentResolver().openInputStream(jsonUri);
-                jsonObject = new JSONObject(IOUtils.toString(inputStream,"UTF-8"));
+                jsonObject = new JSONObject(iStreamToString(inputStream));
                 inputStream.close();
                 Log.e("TAG","jsonObject obtained!!!!");
                 return jsonObject;
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (JSONException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
+            } catch (JSONException | IOException e) {
                 e.printStackTrace();
             }
             return null;
@@ -409,11 +402,12 @@ public class HSDConfigFragment extends BaseDemoFragment {
                 // Set the adapter
                 recyclerView.setAdapter(mSensorsAdapter);
 
-                updateGui(() -> {
+                //NOTE - check this
+                //updateGui(() -> {
                     mDeviceAlias.setText(dm.getDeviceModel().getDeviceInfo().getAlias());
                     mDeviceSerialNumber.setText(dm.getDeviceModel().getDeviceInfo().getSerialNumber());
                     mSensorsAdapter.notifyDataSetChanged();
-                });
+                //});
 
                 SendConfTask mSendConfTask = new SendConfTask();
                 mSendConfTask.execute(dm);
@@ -423,51 +417,6 @@ public class HSDConfigFragment extends BaseDemoFragment {
         @Override
         protected void onCancelled() {
             super.onCancelled();
-        }
-    }
-
-    public class UpdateStatsTask extends AsyncTask<JSONObject, Void, DeviceManager> {
-
-        @Override
-        protected DeviceManager doInBackground(JSONObject... strings) {
-            JSONObject loadedJson = strings[0];
-            deviceManager.parseFWStats(loadedJson);
-            return deviceManager;
-        }
-
-        @Override
-        protected void onPostExecute(DeviceManager dm) {
-            super.onPostExecute(dm);
-            updateGui(() -> {
-                if(cpuUsageValue != null) {
-                    Double cpuUsage = dm.getDeviceStats().getCpuUsage();
-                    if(cpuUsage == 100)
-                        cpuUsage = 0.0;
-                    int r = (255 * cpuUsage.intValue()) / 100;
-                    int g = (255 * (100 - cpuUsage.intValue())) / 100;
-                    cpuUsageIcon.setColorFilter(Color.rgb(r,g,0), android.graphics.PorterDuff.Mode.SRC_IN);
-                    cpuUsageValue.setText(String.valueOf(cpuUsage) + "%");
-                }
-                if(batteryLevelValue != null) {
-                    Double batteryLevel = dm.getDeviceStats().getBatteryLevel();
-                    if(batteryLevel >= 0 && batteryLevel < 20){
-                        batteryLevelIcon.setImageResource(R.drawable.battery_00);
-                    } else if(batteryLevel >= 20 && batteryLevel < 40) {
-                        batteryLevelIcon.setImageResource(R.drawable.battery_20);
-                    } else if(batteryLevel >= 40 && batteryLevel < 60) {
-                        batteryLevelIcon.setImageResource(R.drawable.battery_40);
-                    } else if(batteryLevel >= 60 && batteryLevel < 80) {
-                        batteryLevelIcon.setImageResource(R.drawable.battery_60);
-                    } else if(batteryLevel >= 80 && batteryLevel < 100) {
-                        batteryLevelIcon.setImageResource(R.drawable.battery_80);
-                    } else if(batteryLevel >= 100) {
-                        batteryLevelIcon.setImageResource(R.drawable.battery_100);
-                    } else {
-                        batteryLevelIcon.setImageResource(R.drawable.battery_missing);
-                    }
-                    batteryLevelValue.setText(String.valueOf(dm.getDeviceStats().getBatteryLevel()) + "%");
-                }
-            });
         }
     }
 
@@ -523,8 +472,6 @@ public class HSDConfigFragment extends BaseDemoFragment {
             LoadConfTask loadConfTask = new LoadConfTask();
             loadConfTask.execute(deviceManager.getJSONfromDevice());
         }
-        /*String jsonGetDeviceMessage = deviceManager.createGetDeviceCommand();
-        encapsulateAndSend(jsonGetDeviceMessage);*/
     }
 
     @Override
@@ -564,25 +511,12 @@ public class HSDConfigFragment extends BaseDemoFragment {
         mSaveConfigButton.setOnClickListener(view -> {
             showSaveDialog();
         });
-        /*mSaveConfigButton.setOnClickListener(view -> {
-                Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                intent.setType("application/octet-stream");
-                intent.putExtra(Intent.EXTRA_TITLE, "STWIN_conf.json");
-                startActivityForResult(intent, CREATE_FILE);
-        });*/
 
         mTagButton = root.findViewById(R.id.tagButton);
         mTagButton.setOnClickListener(view -> {
             obscureConfig(mTaggingMaskView,null);
             openTaggingFragment();
         });
-
-        cpuUsageIcon = root.findViewById(R.id.cpuUsageIcon);
-        cpuUsageValue = root.findViewById(R.id.cpuUsageValue);
-        batteryLevelIcon = root.findViewById(R.id.batteryLevelIcon);
-        batteryLevelValue = root.findViewById(R.id.batteryLevelValue);
-
 
         mDeviceAlias = root.findViewById(R.id.deviceAlias);
         mDeviceAlias.setOnLongClickListener(view -> {
@@ -630,8 +564,8 @@ public class HSDConfigFragment extends BaseDemoFragment {
         layout.setPadding(px,px,px,0);
         layout.addView(editText);
         builder.setView(layout);
-        builder.setNegativeButton(R.string.cancel,null);
-        builder.setPositiveButton(R.string.ok, (dialogInterface, i) -> {
+        builder.setNegativeButton("CANCEL",null);
+        builder.setPositiveButton("OK", (dialogInterface, i) -> {
             String newAlias = editText.getText().toString();
             mDeviceAlias.setText(newAlias);
             deviceManager.setDeviceAlias(newAlias);
@@ -641,7 +575,7 @@ public class HSDConfigFragment extends BaseDemoFragment {
         builder.show();
     }
 
-    @Override
+
     protected void enableNeededNotification(@NonNull Node node) {
         mSTWINConf = node.getFeature(FeatureHSDatalogConfig.class);
         //NOTE new STWINConf char
@@ -656,7 +590,7 @@ public class HSDConfigFragment extends BaseDemoFragment {
         }
     }
 
-    @Override
+
     protected void disableNeedNotification(@NonNull Node node) {
         if(mSTWINConf!=null) {
             mSTWINConf.removeFeatureListener(mSTWINConfListener);
@@ -761,7 +695,6 @@ public class HSDConfigFragment extends BaseDemoFragment {
 
     private void showSaveDialog(){
         final Dialog dialog = new Dialog(getContext());
-        //dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setCancelable(false);
         dialog.setContentView(R.layout.hsd_save_dialog);
 

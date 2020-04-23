@@ -16,34 +16,29 @@ import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.st.BlueMS.R;
-import com.st.BlueMS.demos.HSDatalog.Control.DeviceManager;
+import com.st.BlueSTSDK.Features.FeatureHSDatalogConfig;
 import com.st.BlueSTSDK.HSDatalog.Device;
 import com.st.BlueSTSDK.HSDatalog.Tag;
-import com.st.BlueMS.demos.HSDatalog.Utils.HSDAnnotation;
-import com.st.BlueMS.demos.aiDataLog.AnnotationListFragment;
-import com.st.BlueMS.demos.aiDataLog.adapter.AnnotationListAdapter;
-import com.st.BlueMS.demos.aiDataLog.repository.Annotation;
-import com.st.BlueMS.demos.aiDataLog.viewModel.SelectableAnnotation;
-import com.st.BlueSTSDK.Features.FeatureHSDatalogConfig;
-import com.st.BlueSTSDK.gui.demos.DemoDescriptionAnnotation;
+import com.st.STWINBoard_Gui.Control.DeviceManager;
+import com.st.STWINBoard_Gui.Utils.HSDAnnotation;
+import com.st.STWINBoard_Gui.Utils.HSDAnnotationListAdapter;
+import com.st.clab.stwin.gui.R;
 
 import java.util.ArrayList;
 
 /**
- * Demo used to
+ *
  */
-@DemoDescriptionAnnotation(name = "STWIN Tags", iconRes = R.drawable.ic_placeholder,
-        requareAll ={FeatureHSDatalogConfig.class})
-public class HSDTaggingFragment extends AnnotationListFragment {
+
+public class HSDTaggingFragment extends Fragment {
 
     public interface HSDInterface {
         void onBackClicked(Device device);
@@ -53,8 +48,8 @@ public class HSDTaggingFragment extends AnnotationListFragment {
     public interface HSDInteractionCallback extends HSDInterface {}
 
     DeviceManager mDeviceManager;
-    private AnnotationListAdapter mAdapter;
-    private ArrayList<SelectableAnnotation> mAnnotationList;
+    private HSDAnnotationListAdapter mAdapter;
+    private ArrayList<HSDAnnotation> mAnnotationList;
 
     private RecyclerView mAnnotationListView;
     private EditText acqNameEditText;
@@ -119,73 +114,69 @@ public class HSDTaggingFragment extends AnnotationListFragment {
 
         mAnnotationList = new ArrayList<>();
         for (Tag tag : device.getTags()) {
-            Annotation an = new Annotation(tag.getLabel());
-            SelectableAnnotation selectableAnnotation;
+            //Annotation an = new Annotation(tag.getLabel());
+            HSDAnnotation hsdAnnotation;
             if(tag.isSWTag()){
-                selectableAnnotation = new SelectableAnnotation(new HSDAnnotation(tag.getId(), tag.getLabel(),null, HSDAnnotation.TagType.SW));
+                hsdAnnotation = new HSDAnnotation(tag.getId(), tag.getLabel(),null, HSDAnnotation.TagType.SW);
             } else {
-                selectableAnnotation = new SelectableAnnotation(new HSDAnnotation(tag.getId(), tag.getLabel(),tag.getPinDesc(), HSDAnnotation.TagType.HW));
+                hsdAnnotation = new HSDAnnotation(tag.getId(), tag.getLabel(),tag.getPinDesc(), HSDAnnotation.TagType.HW);
             }
-            selectableAnnotation.setHSD(true);
-            selectableAnnotation.setLocked(isLogging);
-            mAnnotationList.add(selectableAnnotation);
+            hsdAnnotation.setLocked(isLogging);
+            mAnnotationList.add(hsdAnnotation);
         }
 
-        mAdapter = new AnnotationListAdapter(getContext());
+        mAdapter = new HSDAnnotationListAdapter(getContext());
         mAdapter.setAnnotation(mAnnotationList);
-        mAdapter.setOnAnnotationInteractionCallback(new AnnotationListAdapter.HSDAnnotationInteractionCallback() {
+        mAdapter.setOnAnnotationInteractionCallback(new HSDAnnotationListAdapter.HSDAnnotationInteractionCallback() {
             @Override
-            public void onLabelChanged(SelectableAnnotation selected, String label) {
+            public void onLabelChanged(HSDAnnotation selected, String label) {
                 removeAcqTextFocus();
-                HSDAnnotation hsdAnnotation = ((HSDAnnotation)selected.annotation);
-                boolean isSW = hsdAnnotation.getTagType() == HSDAnnotation.TagType.SW;
+                boolean isSW = selected.getTagType() == HSDAnnotation.TagType.SW;
                 String jsonConfigTagMessage = mDeviceManager.createConfigTagCommand(
-                        hsdAnnotation.getId(),
+                        selected.getId(),
                         isSW,
                         label
                 );
                 mDeviceManager.encapsulateAndSend(jsonConfigTagMessage);
-                mDeviceManager.setTagLabel(hsdAnnotation.getId(),isSW,hsdAnnotation.getLabel());
+                mDeviceManager.setTagLabel(selected.getId(),isSW,selected.getLabel());
                 //Log.e("HSDTaggingFragment","onLabelChanged");
             }
 
             @Override
-            public void onLabelInChanging(SelectableAnnotation annotation, String label) {
+            public void onLabelInChanging(HSDAnnotation annotation, String label) {
                 removeAcqTextFocus();
             }
 
             @Override
-            public void onAnnotationSelected(SelectableAnnotation selected) {
+            public void onAnnotationSelected(HSDAnnotation selected) {
                 removeAcqTextFocus();
-                HSDAnnotation hsdAnnotation = ((HSDAnnotation)selected.annotation);
-                boolean isSW = hsdAnnotation.getTagType() == HSDAnnotation.TagType.SW;
+                boolean isSW = selected.getTagType() == HSDAnnotation.TagType.SW;
                 String jsonEnableTagMessage = mDeviceManager.createSetTagCommand(
-                        hsdAnnotation.getId(),
+                        selected.getId(),
                         isSW,
                         true
                 );
                 mDeviceManager.encapsulateAndSend(jsonEnableTagMessage);
-                mDeviceManager.setTagEnabled(hsdAnnotation.getId(),isSW,true);
+                mDeviceManager.setTagEnabled(selected.getId(),isSW,true);
                 //Log.e("HSDTaggingFragment","onAnnotationSelected");
             }
 
             @Override
-            public void onAnnotationDeselected(SelectableAnnotation deselected) {
+            public void onAnnotationDeselected(HSDAnnotation deselected) {
                 removeAcqTextFocus();
-                HSDAnnotation hsdAnnotation = ((HSDAnnotation)deselected.annotation);
-                boolean isSW = hsdAnnotation.getTagType() == HSDAnnotation.TagType.SW;
+                boolean isSW = deselected.getTagType() == HSDAnnotation.TagType.SW;
                 String jsonDisableTagMessage = mDeviceManager.createSetTagCommand(
-                        hsdAnnotation.getId(),
+                        deselected.getId(),
                         isSW,
                         false
                 );
                 mDeviceManager.encapsulateAndSend(jsonDisableTagMessage);
-                mDeviceManager.setTagEnabled(hsdAnnotation.getId(),isSW,true);
+                mDeviceManager.setTagEnabled(deselected.getId(),isSW,true);
                 //Log.e("HSDTaggingFragment","onAnnotationDeselected");
             }
 
             @Override
-            public void onRemoved(SelectableAnnotation annotation) {
+            public void onRemoved(HSDAnnotation annotation) {
                 //mAnnotationViewModel.remove(annotation);
                 Log.e("HSDTaggingFragment","onRemoved");
             }
@@ -204,11 +195,9 @@ public class HSDTaggingFragment extends AnnotationListFragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view =  inflater.inflate(R.layout.fragment_ai_log_list_annotation,container,false);
+        View view =  inflater.inflate(R.layout.fragment_stwin_list_annotation,container,false);
         LinearLayout tagButtonsLayout = view.findViewById(R.id.aiLog_annotation_buttonsLayout);
         ((ViewManager)tagButtonsLayout.getParent()).removeView(tagButtonsLayout);
-        TextView taggingInstruction = view.findViewById(R.id.aiLog_annotation_description);
-        ((ViewManager)taggingInstruction.getParent()).removeView(taggingInstruction);
 
         mAnnotationListView = view.findViewById(R.id.aiLog_annotation_list);
         mAnnotationListView.setAdapter(mAdapter);
@@ -292,15 +281,14 @@ public class HSDTaggingFragment extends AnnotationListFragment {
             removeAcqTextFocus();
             lockAcquisitionGUI(true);
 
-            for (SelectableAnnotation tag : mAnnotationList) {
+            for (HSDAnnotation tag : mAnnotationList) {
                 tag.setLocked(true);
-                HSDAnnotation hsdAnnotation = ((HSDAnnotation)tag.annotation);
                 if(tag.isEditable()){
                     //Log.e("HSDTaggingFragment","tag " + hsdAnnotation.getLabel() + "IS IN EDIT MODE!!!");
                     String jsonSetLabelMessage = mDeviceManager.createConfigTagCommand(
-                            hsdAnnotation.getId(),
-                            hsdAnnotation.getTagType() == HSDAnnotation.TagType.SW,
-                            hsdAnnotation.getLabel()
+                            tag.getId(),
+                            tag.getTagType() == HSDAnnotation.TagType.SW,
+                            tag.getLabel()
                     );
                     mDeviceManager.encapsulateAndSend(jsonSetLabelMessage);
                     tag.setEditable(false);
@@ -322,7 +310,7 @@ public class HSDTaggingFragment extends AnnotationListFragment {
             removeAcqTextFocus();
             lockAcquisitionGUI(false);
 
-            for (SelectableAnnotation tag : mAnnotationList) {
+            for (HSDAnnotation tag : mAnnotationList) {
                 tag.setLocked(false);
                 tag.setSelected(false);
             }

@@ -18,11 +18,11 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.st.BlueMS.R;
 import com.st.BlueSTSDK.HSDatalog.DescriptorParam;
 import com.st.BlueSTSDK.HSDatalog.Sensor;
 import com.st.BlueSTSDK.HSDatalog.SensorStatus;
 import com.st.BlueSTSDK.HSDatalog.StatusParam;
+import com.st.clab.stwin.gui.R;
 
 import java.util.List;
 

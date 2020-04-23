@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="hsd_start_log" tools:ignore="MissingTranslation">Start</string>
+    <string name="hsd_stop_log" tools:ignore="MissingTranslation">Start</string>
+    <string name="hsd_wi_fi_configuration">Wi-Fi Configuration</string>
+    <string name="hsd_send">Send</string>
+    <string name="hsd_cancel">Cancel</string>
+    <string name="hsd_current_ip">current IP:</string>
+    <string name="hsd_unavailable">unavailable</string>
+    <string name="hsd_ssid">ssid</string>
+    <string name="hsd_password">password</string>
+    <string name="hsd_enable_wi_fi">Enable Wi-Fi</string>
+    <string name="hsd_save_locally">Save locally on the phone</string>
+    <string name="hsd_save_on_device">Save permanently on the board</string>
+    <string name="hsd_save">Save</string>
+</resources>

@@ -7,18 +7,18 @@ import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.widget.AppCompatImageView;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.st.BlueMS.R;
 import com.st.BlueSTSDK.HSDatalog.Sensor;
 import com.st.BlueSTSDK.HSDatalog.SubSensorDescriptor;
 import com.st.BlueSTSDK.HSDatalog.SubSensorStatus;
+import com.st.clab.stwin.gui.R;
 
 import java.util.List;
 
@@ -78,7 +78,7 @@ public class SubSensorViewAdapter extends RecyclerView.Adapter<SubSensorViewAdap
         SubSensorStatus subSensorStatus = mSubStatusList.get(position);
         String mSSCSensorType = subSensorDescriptor.getSensorType();
         String subSensorTypeLabel;
-        Drawable subSensorIcon = ContextCompat.getDrawable(mContext, R.drawable.ic_st_sensor_placeholder);
+        Drawable subSensorIcon = ContextCompat.getDrawable(mContext, R.drawable.ic_st_placeholder);
         switch (mSSCSensorType) {
             case "ACC":
                 subSensorIcon = ContextCompat.getDrawable(mContext, R.drawable.ic_accelerometer);
@@ -134,7 +134,7 @@ public class SubSensorViewAdapter extends RecyclerView.Adapter<SubSensorViewAdap
         return mSubSensorList.size();
     }
 
-    private void manageSubSensorStatus(SubSensorStatus subSensorStatus, AppCompatImageView subSensorIcon, LinearLayout layoutMask){
+    private void manageSubSensorStatus(SubSensorStatus subSensorStatus, ImageView subSensorIcon, LinearLayout layoutMask){
         if (subSensorStatus.isActive()) {
             subSensorIcon.clearColorFilter();
             layoutMask.setClickable(false);
@@ -149,7 +149,7 @@ public class SubSensorViewAdapter extends RecyclerView.Adapter<SubSensorViewAdap
     public class ViewHolder extends RecyclerView.ViewHolder{
         LinearLayout mSubSensorRowLayout;
         LinearLayout mSubSensorRowLayoutMask;
-        AppCompatImageView mSubSensorIcon;
+        ImageView mSubSensorIcon;
         TextView mSubSensorType;
         RecyclerView mSubSensorListView;
 
