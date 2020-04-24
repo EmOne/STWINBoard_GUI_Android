@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="stwin_log_start_log">Start</string>
+    <string name="stwin_log_stop_log">Stop</string>
+    <string name="stwin_log_wificonf_log">Set WiFi Credentials</string>
+</resources>
