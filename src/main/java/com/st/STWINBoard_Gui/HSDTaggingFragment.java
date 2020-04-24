@@ -27,6 +27,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.st.BlueSTSDK.Features.FeatureHSDatalogConfig;
 import com.st.BlueSTSDK.HSDatalog.Device;
 import com.st.BlueSTSDK.HSDatalog.Tag;
+import com.st.BlueSTSDK.HSDatalog.TagHW;
 import com.st.STWINBoard_Gui.Control.DeviceManager;
 import com.st.STWINBoard_Gui.Utils.HSDAnnotation;
 import com.st.STWINBoard_Gui.Utils.HSDAnnotationListAdapter;
@@ -116,10 +117,10 @@ public class HSDTaggingFragment extends Fragment {
         for (Tag tag : device.getTags()) {
             //Annotation an = new Annotation(tag.getLabel());
             HSDAnnotation hsdAnnotation;
-            if(tag.isSWTag()){
+            if(tag instanceof TagHW) {
+                hsdAnnotation = new HSDAnnotation(tag.getId(), tag.getLabel(), ((TagHW) tag).getPinDesc(), HSDAnnotation.TagType.HW);
+            }else{
                 hsdAnnotation = new HSDAnnotation(tag.getId(), tag.getLabel(),null, HSDAnnotation.TagType.SW);
-            } else {
-                hsdAnnotation = new HSDAnnotation(tag.getId(), tag.getLabel(),tag.getPinDesc(), HSDAnnotation.TagType.HW);
             }
             hsdAnnotation.setLocked(isLogging);
             mAnnotationList.add(hsdAnnotation);

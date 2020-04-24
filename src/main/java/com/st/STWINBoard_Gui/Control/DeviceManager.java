@@ -17,7 +17,6 @@ import com.st.BlueSTSDK.HSDatalog.SubSensorDescriptor;
 import com.st.BlueSTSDK.HSDatalog.SubSensorStatus;
 import com.st.BlueSTSDK.HSDatalog.Tag;
 import com.st.BlueSTSDK.HSDatalog.TagHW;
-import com.st.BlueSTSDK.HSDatalog.TagSW;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -332,8 +331,8 @@ public class DeviceManager implements DeviceManagerInterface {
         return null;
     }
 
-    private TagSW parseTagSW(JSONObject jsonSWTag) throws JSONException {
-    return new TagSW(jsonSWTag.getInt(ID_JSON_KEY),
+    private Tag parseTagSW(JSONObject jsonSWTag) throws JSONException {
+    return new Tag(jsonSWTag.getInt(ID_JSON_KEY),
             jsonSWTag.getString(TAGS_LABEL_JSON_KEY),
             false,
             null
@@ -486,6 +485,41 @@ public class DeviceManager implements DeviceManagerInterface {
         this.mDevice.getSensor(id).setSensorDescriptor(parseSensorDescriptor(jsonObj));
     }
 
+    //todo check the name of this funciton
+    private DescriptorParam checkValidity(DescriptorParam currentValues,DescriptorParam  validValues){
+        String errors = "";
+
+        List<Double> values = currentValues.getValues();
+        if(!isEquals(values,validValues.getValues())){
+            errors += "-> " + validValues.getName() + " Invalid Values\n";
+        }
+
+        String dataType = currentValues.getDataType();
+        if(!(currentValues.getDataType() == null || currentValues.getDataType().equals(validValues.getDataType()))){
+            errors += "-> " + validValues.getName() + " Invalid Data Type\n";
+        }
+
+        Double min = currentValues.getMin();
+        if(!(min == null || min.equals(validValues.getMin()))){
+            errors += "-> " + validValues.getName() + " Invalid Min\n";
+        }
+
+        Double max = currentValues.getMax();
+        if(!(max == null || max.equals(validValues.getMax()))){
+            errors += "-> " + validValues.getName() + " Invalid Max\n";
+        }
+
+        return new DescriptorParam(
+                validValues.getName(),
+                values,
+                min,
+                max,
+                dataType,
+                errors.isEmpty() ? null : errors
+        );
+
+    }
+
     private SensorDescriptor checkSensorDescriptor(Sensor s){
         int sid = s.getId();
         SensorDescriptor sd = s.getSensorDescriptor();
@@ -504,30 +538,8 @@ public class DeviceManager implements DeviceManagerInterface {
 
         ArrayList<DescriptorParam> checkedDescriptorParamList = new ArrayList<>();
         for (DescriptorParam descriptorParam : modelSensorDescriptor.getDescriptorParams()) {
-            DescriptorParam checkedDescriptorParam = new DescriptorParam();
             DescriptorParam dp = sd.getDescriptorParam(descriptorParam.getName());
-
-            checkedDescriptorParam.setName(dp.getName());
-
-            checkedDescriptorParam.setValues(descriptorParam.getValues());
-            if(!isEquals(descriptorParam.getValues(),dp.getValues())){
-                checkedDescriptorParam.addErrorMessage("-> " + dp.getName() + " Invalid Values");
-            }
-
-            checkedDescriptorParam.setDataType(descriptorParam.getDataType());
-            if(!(descriptorParam.getDataType() == null || descriptorParam.getDataType().equals(dp.getDataType()))){
-                checkedDescriptorParam.addErrorMessage("-> " + dp.getName() + " Invalid Data Type");
-            }
-
-            checkedDescriptorParam.setMin(descriptorParam.getMin());
-            if(!(descriptorParam.getMin() == null || descriptorParam.getMin().equals(dp.getMin()))){
-                checkedDescriptorParam.addErrorMessage("-> " + dp.getName() + " Invalid Min");
-            }
-
-            checkedDescriptorParam.setMax(descriptorParam.getMax());
-            if(!(descriptorParam.getMax() == null || descriptorParam.getMax().equals(dp.getMax()))){
-                checkedDescriptorParam.addErrorMessage("-> " + dp.getName() + " Invalid Max");
-            }
+            DescriptorParam checkedDescriptorParam = checkValidity(descriptorParam,dp);
             checkedDescriptorParamList.add(checkedDescriptorParam);
         }
         checkedSensorDescriptor.setDescriptorParams(checkedDescriptorParamList);
@@ -557,37 +569,19 @@ public class DeviceManager implements DeviceManagerInterface {
                 ArrayList<DescriptorParam> checkedSubDescriptorParamList = new ArrayList<>();
 
                 for (DescriptorParam subDescriptorParam : subSensorDescriptor.getSubDescriptorParams()) {
-                    DescriptorParam checkedDescriptorSubParam = new DescriptorParam();
+
                     if (ssd.getErrorMessage() == null) {
                         DescriptorParam sdp = ssd.getDescriptorParam(subDescriptorParam.getName());
-
                         //TODO check if name isEquals???
-                        checkedDescriptorSubParam.setName(sdp.getName());
+                        //checkedDescriptorSubParam.setName(sdp.getName());
 
-                        checkedDescriptorSubParam.setValues(subDescriptorParam.getValues());
-                        if (!isEquals(subDescriptorParam.getValues(), sdp.getValues())) {
-                            checkedDescriptorSubParam.addErrorMessage("-> " + sdp.getName() + " Invalid Values");
-                        }
-
-                        checkedDescriptorSubParam.setDataType(subDescriptorParam.getDataType());
-                        if (!(subDescriptorParam.getDataType() == null || subDescriptorParam.getDataType().equals(sdp.getDataType()))) {
-                            checkedDescriptorSubParam.addErrorMessage("-> " + sdp.getName() + " Invalid Data Type");
-                        }
-
-                        checkedDescriptorSubParam.setMin(subDescriptorParam.getMin());
-                        if (!(subDescriptorParam.getMin() == null || subDescriptorParam.getMin().equals(sdp.getMin()))) {
-                            checkedDescriptorSubParam.addErrorMessage("-> " + sdp.getName() + " Invalid Min");
-                        }
-
-                        checkedDescriptorSubParam.setMax(subDescriptorParam.getMax());
-                        if (!(subDescriptorParam.getMax() == null || subDescriptorParam.getMax().equals(sdp.getMax()))) {
-                            checkedDescriptorSubParam.addErrorMessage("-> " + sdp.getName() + " Invalid Max");
-                        }
+                        DescriptorParam checkedDescriptorSubParam = checkValidity(subDescriptorParam,sdp);
+                        checkedSubDescriptorParamList.add(checkedDescriptorSubParam);
                     } else {
-                        checkedDescriptorSubParam = subDescriptorParam;
+                        DescriptorParam checkedDescriptorSubParam = subDescriptorParam;
                         checkedDescriptorSubParam.addErrorMessage("-> Invalid " + subDescriptorParam.getName());
+                        checkedSubDescriptorParamList.add(checkedDescriptorSubParam);
                     }
-                    checkedSubDescriptorParamList.add(checkedDescriptorSubParam);
                 }
                 checkedSubSensorDescriptor.setSubDescriptorParams(checkedSubDescriptorParamList);
                 checkedSubSensorDescriptorList.add(checkedSubSensorDescriptor);
