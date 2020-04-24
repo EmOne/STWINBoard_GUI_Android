@@ -34,10 +34,6 @@ public interface DeviceManagerInterface {
     String SENSITIVITY_JSON_KEY = "sensitivity";
     String IS_ACTIVE_JSON_KEY = "isActive";
     String TAG_LIST_JSON_KEY = "tagConfig";
-    String TAGS_SW_JSON_KEY = "swTags";
-    String TAGS_HW_JSON_KEY = "hwTags";
-    String TAGS_LABEL_JSON_KEY = "label";
-    String TAGS_PIN_DESC_JSON_KEY = "pinDesc";
 
     String CPU_USAGE_JSON_KEY = "cpuUsage";
     String BATTERY_VOLTAGE_JSON_KEY = "batteryVoltage";

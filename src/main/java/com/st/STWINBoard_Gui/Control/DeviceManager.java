@@ -17,6 +17,7 @@ import com.st.BlueSTSDK.HSDatalog.SubSensorDescriptor;
 import com.st.BlueSTSDK.HSDatalog.SubSensorStatus;
 import com.st.BlueSTSDK.HSDatalog.Tag;
 import com.st.BlueSTSDK.HSDatalog.TagHW;
+import com.st.BlueSTSDK.HSDatalog.TagKt;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -312,40 +313,7 @@ public class DeviceManager implements DeviceManagerInterface {
     }
 
     private List<Tag> parseTagList(JSONObject jsonTagList) {
-        try {
-            JSONArray jsonSWTags = jsonTagList.getJSONArray(TAGS_SW_JSON_KEY);
-            ArrayList<Tag> mTags = new ArrayList<>();
-            for (int i = 0; i < jsonSWTags.length(); i++) {
-                JSONObject jsonSWTag = jsonSWTags.getJSONObject(i);
-                mTags.add(parseTagSW(jsonSWTag));
-            }
-            JSONArray jsonHWTags = jsonTagList.getJSONArray(TAGS_HW_JSON_KEY);
-            for (int i = 0; i < jsonHWTags.length(); i++) {
-                JSONObject jsonHWTag = jsonHWTags.getJSONObject(i);
-                mTags.add(parseTagHW(jsonHWTag));
-            }
-            return mTags;
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    private Tag parseTagSW(JSONObject jsonSWTag) throws JSONException {
-    return new Tag(jsonSWTag.getInt(ID_JSON_KEY),
-            jsonSWTag.getString(TAGS_LABEL_JSON_KEY),
-            false,
-            null
-            );
-    }
-
-    private TagHW parseTagHW(JSONObject jsonSWTag) throws JSONException {
-        return new TagHW(jsonSWTag.getInt(ID_JSON_KEY),
-                jsonSWTag.getString(TAGS_PIN_DESC_JSON_KEY),
-                jsonSWTag.getString(TAGS_LABEL_JSON_KEY),
-                false,
-                null
-        );
+        return TagKt.extractTagList(jsonTagList.toString());
     }
 
     @Override
