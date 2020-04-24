@@ -8,6 +8,7 @@ import com.st.BlueSTSDK.Features.FeatureHSDatalogConfig;
 import com.st.BlueSTSDK.HSDatalog.Device;
 import com.st.BlueSTSDK.HSDatalog.DescriptorParam;
 import com.st.BlueSTSDK.HSDatalog.DeviceInfo;
+import com.st.BlueSTSDK.HSDatalog.DeviceInfoKt;
 import com.st.BlueSTSDK.HSDatalog.DeviceStats;
 import com.st.BlueSTSDK.HSDatalog.Sensor;
 import com.st.BlueSTSDK.HSDatalog.SensorDescriptor;
@@ -16,7 +17,6 @@ import com.st.BlueSTSDK.HSDatalog.StatusParam;
 import com.st.BlueSTSDK.HSDatalog.SubSensorDescriptor;
 import com.st.BlueSTSDK.HSDatalog.SubSensorStatus;
 import com.st.BlueSTSDK.HSDatalog.Tag;
-import com.st.BlueSTSDK.HSDatalog.TagHW;
 import com.st.BlueSTSDK.HSDatalog.TagKt;
 
 import org.json.JSONArray;
@@ -100,16 +100,17 @@ public class DeviceManager implements DeviceManagerInterface {
     private Device parseDevice(JSONObject jsonObj) throws JSONException {
         JSONObject jsonDevice = jsonObj.getJSONObject(DEVICE_JSON_KEY);
         Iterator<String> keys = jsonDevice.keys();
-        DeviceInfo mDeviceInfo = new DeviceInfo();
         ArrayList<Sensor> mSensors = new ArrayList<>();
         ArrayList<Tag> mTags = new ArrayList<>();
+        //build a fake device info to put the error inside..
+        DeviceInfo deviceInfo = new DeviceInfo("","",null,null,null,null,0,"Error in DeviceInfo parsing!");
         while(keys.hasNext()) {
             String key = keys.next();
             switch (key){
                 case DEVICE_INFO_JSON_KEY:
-                    mDeviceInfo = parseDeviceInfo(jsonDevice);
-                    if (mDeviceInfo == null){
-                        mDeviceInfo.setErrorMessage("Error in DeviceInfo parsing!");
+                    deviceInfo = parseDeviceInfo(jsonDevice);
+                    if (deviceInfo == null){
+                        //TODO menage the erro in a better way..
                         Log.e("ERROR","Error in DeviceInfo parsing!");
                     }
                 break;
@@ -138,10 +139,10 @@ public class DeviceManager implements DeviceManagerInterface {
         Set<Sensor> dupSensors = Device.areThereDuplicateSensorIDs(mSensors);
         if(!dupSensors.isEmpty()){
            Log.e("ERROR","Error in parsing Sensor List. Duplicate id!");
-            return new Device(mDeviceInfo,mSensors,mTags,"-> Duplicate Sensor id!");
+            return new Device(deviceInfo,mSensors,mTags,"-> Duplicate Sensor id!");
         }
         else{
-            return new Device(mDeviceInfo,mSensors,mTags,null);
+            return new Device(deviceInfo,mSensors,mTags,null);
         }
     }
 
@@ -149,18 +150,7 @@ public class DeviceManager implements DeviceManagerInterface {
         JSONObject jsonDeviceInfo;
         try {
             jsonDeviceInfo = jsonDevice.getJSONObject(DEVICE_INFO_JSON_KEY);
-            String  serialNumber = jsonDeviceInfo.getString(SERIAL_NUMBER_JSON_KEY);
-            serialNumber = serialNumber.replace(" ", "");
-            return new DeviceInfo(
-                    serialNumber,
-                    jsonDeviceInfo.getString(ALIAS_JSON_KEY),
-                    jsonDeviceInfo.has(PART_NUMBER_JSON_KEY)?jsonDeviceInfo.getString(PART_NUMBER_JSON_KEY):null,
-                    jsonDeviceInfo.has(URL_JSON_KEY)?jsonDeviceInfo.getString(URL_JSON_KEY):null,
-                    jsonDeviceInfo.has(FW_NAME_JSON_KEY)?jsonDeviceInfo.getString(FW_NAME_JSON_KEY):null,
-                    jsonDeviceInfo.has(FW_VERSION_JSON_KEY)?jsonDeviceInfo.getString(FW_VERSION_JSON_KEY):null,
-                    jsonDeviceInfo.getInt(N_SENSORS_JSON_KEY),
-                    null
-            );
+            return DeviceInfoKt.extractDeviceInfo(jsonDeviceInfo.toString());
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -391,7 +381,7 @@ public class DeviceManager implements DeviceManagerInterface {
             //TODO check DeviceInfo
             checkedDevice.setDeviceInfo(checkDeviceInfo(loadedDevice.getDeviceInfo()));
 
-            if (loadedDevice.getDeviceInfo().getnSensor() != loadedDevice.getSensors().size())
+            if (loadedDevice.getDeviceInfo().getNSensor() != loadedDevice.getSensors().size())
                 checkedDevice.getDeviceInfo().addErrorMessage("-> Inconsistent number of sensors");
 
             //checkedDevice.setSensors(this.mDevice.getSensors());
@@ -423,7 +413,9 @@ public class DeviceManager implements DeviceManagerInterface {
     }
 
     private DeviceInfo checkDeviceInfo(DeviceInfo di) {
-        DeviceInfo checkedDeviceInfo = new DeviceInfo();
+        // TODO build it only at the end when we have all the data
+        // set the serial number, alias nSensor as constant?
+        DeviceInfo checkedDeviceInfo = new DeviceInfo("","",null,null,null,null,0,"");
 
         checkedDeviceInfo.setSerialNumber(this.mDevice.getDeviceInfo().getSerialNumber());
         if (!this.mDevice.getDeviceInfo().getSerialNumber().equals(di.getSerialNumber())) {
@@ -437,11 +429,11 @@ public class DeviceManager implements DeviceManagerInterface {
             Log.e("ModelCheckError","Loaded alias != connected board alias");
         }
 
-        checkedDeviceInfo.setnSensor(this.mDevice.getDeviceInfo().getnSensor());
-        if (!(this.mDevice.getDeviceInfo().getnSensor() == (di.getnSensor()))) {
+        checkedDeviceInfo.setNSensor(this.mDevice.getDeviceInfo().getNSensor());
+        if (!(this.mDevice.getDeviceInfo().getNSensor() == (di.getNSensor()))) {
             checkedDeviceInfo.addErrorMessage("-> Invalid number of sensors");
-            checkedDeviceInfo.addErrorMessage("----> expected: " + mDevice.getDeviceInfo().getnSensor());
-            checkedDeviceInfo.addErrorMessage("----> found: " + di.getnSensor());
+            checkedDeviceInfo.addErrorMessage("----> expected: " + mDevice.getDeviceInfo().getNSensor());
+            checkedDeviceInfo.addErrorMessage("----> found: " + di.getNSensor());
             Log.e("ModelCheckError","Loaded sensor number != connected board sensor number");
         }
         return checkedDeviceInfo;
@@ -683,7 +675,7 @@ public class DeviceManager implements DeviceManagerInterface {
         try {
             deviceInfoJSON.put(SERIAL_NUMBER_JSON_KEY,mDevice.getDeviceInfo().getSerialNumber());
             deviceInfoJSON.put(ALIAS_JSON_KEY,mDevice.getDeviceInfo().getAlias());
-            deviceInfoJSON.put(N_SENSORS_JSON_KEY,mDevice.getDeviceInfo().getnSensor());
+            deviceInfoJSON.put(N_SENSORS_JSON_KEY,mDevice.getDeviceInfo().getNSensor());
             deviceJSON.put(DEVICE_INFO_JSON_KEY, deviceInfoJSON);
             JSONArray sensorArrayParamsJSON = new JSONArray();
             for (Sensor sensor : mDevice.getSensors()) {
