@@ -79,6 +79,7 @@ import com.st.BlueSTSDK.HSDatalog.SensorStatus;
 import com.st.BlueSTSDK.HSDatalog.StatusParam;
 import com.st.BlueSTSDK.HSDatalog.SubSensorStatus;
 import com.st.BlueSTSDK.Node;
+import com.st.BlueSTSDK.gui.demos.DemoFragment;
 import com.st.STWINBoard_Gui.Control.DeviceManager;
 import com.st.STWINBoard_Gui.HSDTaggingFragment.HSDInteractionCallback;
 import com.st.STWINBoard_Gui.Utils.SensorViewAdapter;
@@ -98,7 +99,7 @@ import java.util.Iterator;
  *
  */
 
-public class HSDConfigFragment extends Fragment {
+public class HSDConfigFragment extends DemoFragment {
 
     private static String STWIN_CONFIG_FRAGMENT_TAG = HSDConfigFragment.class.getName()+".STWIN_CONFIG_FRAGMENT_TAG";
     private static int PICKFILE_REQUEST_CODE = 7777;
