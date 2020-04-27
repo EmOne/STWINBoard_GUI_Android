@@ -62,6 +62,7 @@ import com.st.BlueSTSDK.Feature
 import com.st.BlueSTSDK.Feature.FeatureListener
 import com.st.BlueSTSDK.Features.FeatureHSDatalogConfig
 import com.st.BlueSTSDK.HSDatalog.Device
+import com.st.BlueSTSDK.Manager
 import com.st.BlueSTSDK.Node
 import com.st.BlueSTSDK.gui.demos.DemoFragment
 import com.st.STWINBoard_Gui.Control.DeviceManager
@@ -76,11 +77,9 @@ import java.io.*
 /**
  *
  */
-open class HSDConfigFragment : DemoFragment() {
+open class HSDConfigFragment : Fragment() {
     private var deviceManager: DeviceManager? = null
     private var recyclerView: RecyclerView? = null
-    private var mDeviceAlias: TextView? = null
-    private var mDeviceSerialNumber: TextView? = null
     private var mSensorsAdapter: SensorViewAdapter? = null
     private var mLoadConfigButton: Button? = null
     private var mSaveConfigButton: Button? = null
@@ -321,8 +320,6 @@ open class HSDConfigFragment : DemoFragment() {
 
                 //NOTE - check this
                 //updateGui(() -> {
-                mDeviceAlias!!.text = dm.deviceModel.deviceInfo.alias
-                mDeviceSerialNumber!!.text = dm.deviceModel.deviceInfo.serialNumber
                 mSensorsAdapter!!.notifyDataSetChanged()
                 //});
                 val mSendConfTask = SendConfTask()
@@ -418,17 +415,15 @@ open class HSDConfigFragment : DemoFragment() {
             obscureConfig(mTaggingMaskView, null)
             openTaggingFragment()
         })
-        mDeviceAlias = root.findViewById(R.id.deviceAlias)
-        mDeviceAlias?.setOnLongClickListener(OnLongClickListener { view: View? ->
-            showChangeAliasDialog(context, mDeviceAlias)
-            true
-        })
-        mDeviceSerialNumber = root.findViewById(R.id.deviceSerialNumber)
+
+        //todo: MOVE THIS IN A MENU ITEM
+        //showChangeAliasDialog(context, mDeviceAlias)
+
         recyclerView = root.findViewById(R.id.sensors_list)
         mTaggingMaskView = root.findViewById(R.id.start_log_mask)
         mMaskView = root.findViewById(R.id.animation_mask)
         dataImageView = root.findViewById(R.id.ongoingLogImageView)
-        mDataTransferAnimation = AnimationUtils.loadAnimation(activity!!.applicationContext, R.anim.move_right_full)
+        mDataTransferAnimation = AnimationUtils.loadAnimation(requireContext().applicationContext, R.anim.move_right_full)
         unobscureConfig(mTaggingMaskView, dataImageView)
         return root
     }
@@ -459,23 +454,44 @@ open class HSDConfigFragment : DemoFragment() {
         builder.show()
     }
 
-    override fun enableNeededNotification(node: Node) {
+    override fun onStart() {
+        super.onStart()
+        val node = arguments?.getString(NODE_TAG_EXTRA)?.let {
+            Manager.getSharedInstance().getNodeWithTag(it)
+        }
+        if(node!=null){
+            enableNeededNotification(node)
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        Log.d("HSDConf","STOP")
+        val node = arguments?.getString(NODE_TAG_EXTRA)?.let {
+            Manager.getSharedInstance().getNodeWithTag(it)
+        }
+        if(node!=null){
+            disableNeedNotification(node)
+        }
+    }
+
+     fun enableNeededNotification(node: Node) {
         mSTWINConf = node.getFeature(FeatureHSDatalogConfig::class.java)
         //NOTE new STWINConf char
-        if (mSTWINConf != null) {
-            mSTWINConf!!.addFeatureListener(mSTWINConfListener)
-            val test = node.enableNotification(mSTWINConf)
-            Log.e("TEST", "notifEnabled: $test")
-            deviceManager!!.setHSDFeature(mSTWINConf)
+        mSTWINConf?.apply {
+            addFeatureListener(mSTWINConfListener)
+            enableNotification()
+            Log.e("TEST", "notifEnabled")
+            deviceManager!!.setHSDFeature(this)
             val jsonGetDeviceMessage = deviceManager!!.createGetDeviceCommand()
             deviceManager!!.encapsulateAndSend(jsonGetDeviceMessage)
         }
     }
 
-    override fun disableNeedNotification(node: Node) {
-        if (mSTWINConf != null) {
-            mSTWINConf!!.removeFeatureListener(mSTWINConfListener)
-            mSTWINConf!!.disableNotification()
+     fun disableNeedNotification(node: Node) {
+        mSTWINConf?.apply {
+            removeFeatureListener(mSTWINConfListener)
+            disableNotification()
         }
     }
 
@@ -608,9 +624,14 @@ open class HSDConfigFragment : DemoFragment() {
     companion object {
         private val STWIN_CONFIG_FRAGMENT_TAG = HSDConfigFragment::class.java.name + ".STWIN_CONFIG_FRAGMENT_TAG"
         private const val PICKFILE_REQUEST_CODE = 7777
+        private val NODE_TAG_EXTRA = HSDConfigFragment::class.java.name + ".NODE_TAG_EXTRA"
 
         fun newInstance(node: Node): Fragment {
-            return HSDConfigFragment()
+            return HSDConfigFragment().apply {
+                arguments = Bundle().apply {
+                    putString(NODE_TAG_EXTRA,node.tag)
+                }
+            }
         }
 
         private const val CREATE_FILE = 1
