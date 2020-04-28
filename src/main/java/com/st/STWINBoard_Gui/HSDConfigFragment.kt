@@ -67,7 +67,6 @@ import logger.HSDTaggingFragment.HSDInteractionCallback
 import com.st.STWINBoard_Gui.Utils.SensorViewAdapter
 import com.st.STWINBoard_Gui.Utils.SensorViewAdapter.*
 import com.st.clab.stwin.gui.R
-import logger.HSDTaggingFragment
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.*
@@ -81,7 +80,6 @@ open class HSDConfigFragment : Fragment() {
     private var mSensorsAdapter: SensorViewAdapter? = null
     private var mLoadConfigButton: Button? = null
     private var mSaveConfigButton: Button? = null
-    private var mTagButton: Button? = null
     private var mTaggingMaskView: LinearLayout? = null
     private var mMaskView: LinearLayout? = null
     private var dataImageView: ImageView? = null
@@ -405,14 +403,6 @@ open class HSDConfigFragment : Fragment() {
         mLoadConfigButton?.setOnClickListener(View.OnClickListener { view: View? -> openJSONSelector() })
         mSaveConfigButton = root.findViewById(R.id.saveConfButton)
         mSaveConfigButton?.setOnClickListener(View.OnClickListener { view: View? -> showSaveDialog() })
-        mTagButton = root.findViewById(R.id.tagButton)
-        mTagButton?.setOnClickListener(View.OnClickListener { view: View? ->
-            obscureConfig(mTaggingMaskView, null)
-            openTaggingFragment()
-        })
-
-        //todo: MOVE THIS IN A MENU ITEM
-        //showChangeAliasDialog(context, mDeviceAlias)
 
         recyclerView = root.findViewById(R.id.sensors_list)
         mTaggingMaskView = root.findViewById(R.id.start_log_mask)
@@ -482,7 +472,6 @@ open class HSDConfigFragment : Fragment() {
             deviceManager!!.setIsLogging(true)
             obscureConfig(mTaggingMaskView, null)
             Log.e("STWINConfigFragment", "START TAG PRESSED!!!!")
-            openTaggingFragment()
         }
         stopMenuItem?.getActionView()?.setOnClickListener { view: View? ->
             startMenuItem?.setVisible(true)
@@ -495,16 +484,6 @@ open class HSDConfigFragment : Fragment() {
         startMenuItem?.setVisible(!deviceManager!!.isLogging)
         stopMenuItem?.setVisible(deviceManager!!.isLogging)
         super.onCreateOptionsMenu(menu, inflater)
-    }
-
-    private fun openTaggingFragment() {
-        val fm = childFragmentManager
-        val frag = HSDTaggingFragment.newInstance(mNode)
-        //frag.setOnDoneCLickedCallback(mHSDTagFragmentCallbacks)
-        fm.beginTransaction()
-                .add(R.id.start_log_mask, frag, STWIN_CONFIG_FRAGMENT_TAG)
-                .addToBackStack(null)
-                .commit()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
