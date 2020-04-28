@@ -62,7 +62,9 @@
             android:id="@+id/param_editable_unit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
             android:layout_marginStart="16dp"
-            tools:text="mg"/>
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            tools:text="mg" />
 
 </LinearLayout>

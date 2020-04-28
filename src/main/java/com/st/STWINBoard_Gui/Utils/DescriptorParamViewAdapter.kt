@@ -102,7 +102,7 @@ class DescriptorParamViewAdapter(
                 mParamValue.setText(param.min?.toString())
             }
 
-            mParamUnit.text = "changeMe"
+            mParamUnit.text = "??"
         }
     }
 
@@ -113,20 +113,38 @@ class DescriptorParamViewAdapter(
         private val mParamValues:AbsSpinner = itemView.findViewById(R.id.param_selectable_values)
 
         init {
-            mParamValues.onItemSelectedListener = object : OnItemSelectedListener {
-                override fun onItemSelected(adapterView: AdapterView<*>?, view: View, i: Int, l: Long) {
-                    val selectedValue = mParamValues.getItemAtPosition(i).toString()
+
+            val onUserItemSelectedByUser = object : OnItemSelectedListener, View.OnTouchListener {
+                private var userSelect = false
+
+                override fun onNothingSelected(parent: AdapterView<*>?) {}
+
+                override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                    if (!userSelect) {
+                        return
+                    }
+                    val selectedValue = mParamValues.getItemAtPosition(position).toString()
                     mParamValuesChange(descriptorParam, selectedValue)
+                    userSelect = false;
                 }
 
-                override fun onNothingSelected(adapterView: AdapterView<*>?) {}
+                override fun onTouch(v: View?, event: MotionEvent?): Boolean {
+                    userSelect = true;
+                    return false;
+                }
+
             }
+
+            mParamValues.setOnTouchListener(onUserItemSelectedByUser)
+            mParamValues.onItemSelectedListener = onUserItemSelectedByUser
         }
 
         override fun bind(param: DescriptorParam) {
             super.bind(param)
             mParamName.text = param.name
+            mParamUnit.text = "??"
             val values = param.values?.toTypedArray() ?: return
+
             val valuesAdapter = ArrayAdapter(mParamValues.context, android.R.layout.simple_spinner_item, values)
             valuesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             mParamValues.adapter = valuesAdapter

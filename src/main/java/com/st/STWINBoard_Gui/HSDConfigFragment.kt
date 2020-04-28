@@ -191,27 +191,6 @@ open class HSDConfigFragment : Fragment() {
         }
     }
 
-    private val mHSDTagFragmentCallbacks: HSDInteractionCallback = object : HSDInteractionCallback {
-        override fun onBackClicked(device: Device) {
-            unobscureConfig(mTaggingMaskView, null)
-            if (deviceManager!!.isLogging) obscureConfig(mMaskView, dataImageView)
-            deviceManager!!.setDevice(device)
-            //Log.e("HSDInteractionCallback","onDoneClicked: " + device.toString());
-        }
-
-        override fun onStartLogClicked(device: Device) {
-            deviceManager!!.setIsLogging(true)
-            //Log.e("HSDInteractionCallback","onStartLogClicked: " + device.toString());
-        }
-
-        override fun onStopLogClicked(device: Device) {
-            unobscureConfig(mMaskView, dataImageView)
-            deviceManager!!.setIsLogging(false)
-            deviceManager!!.setDevice(device)
-            //Log.e("HSDInteractionCallback","onStopLogClicked: " + device.toString());
-        }
-    }
-
     //NOTE /////////////////////////////////////////////////////////////////////////////////////////////
     @Throws(IOException::class)
     private fun iStreamToString(`is`: InputStream?): String {
@@ -312,31 +291,37 @@ open class HSDConfigFragment : Fragment() {
                         dm.deviceModel.sensors,
                         object : OnSensorSwitchClickedListener{
                             override fun onSensorSwitchClicked(sensorId: Int) {
+                                Log.d(TAG,"onSensorSwitchClicked $sensorId")
                                 manageSensorSwitchClicked(sensorId)
                             }
                         } ,
                         object : OnSensorSpinnerValueSelectedListener {
                             override fun onSpinnerValueSelected(sensorId: Int, paramName: String, value: String) {
+                                Log.d(TAG,"onSpinnerValueSelected $sensorId : $paramName:$value")
                                 manageSensorSpinnerSelection(sensorId, paramName, value)
                             }
                         },
                         object : OnSensorEditTextChangedListener {
                             override fun onEditTextValueChanged(sensorId: Int, paramName: String, value: String) {
+                                Log.d(TAG,"onEditTextValueChanged $sensorId -> $paramName:$value")
                                 manageSensorEditTextChanged(sensorId, paramName, value)
                             }
                         },
                         object : OnSubSensorIconClickedListener {
                             override fun onSubSensorIconClicked(sensorId: Int, subSensorId: Int) {
+                                Log.d(TAG,"onSubSensorIconClicked $sensorId - $subSensorId")
                                 manageSubSensorIconClicked(sensorId, subSensorId)
                             }
                         },
                         object : OnSubSensorSpinnerValueSelectedListener {
                             override fun onSpinnerValueSelected(sensorId: Int, subSensorId: Int?, paramName: String, value: String) {
+                                Log.d(TAG,"onSpinnerValueSelected $sensorId - $subSensorId $paramName:$value")
                                 manageSubSensorSpinnerSelection(sensorId, subSensorId!!, paramName, value)
                             }
                         },
                         object : OnSubSensorEditTextChangedListener {
                             override fun onSubSensorEditTextValueChanged(sensorId: Int, subSensorId: Int?, paramName: String, value: String) {
+                                Log.d(TAG,"onSubSensorEditTextValueChanged $sensorId - $subSensorId $paramName:$value")
                                 manageSubSensorEditTextChanged(sensorId, subSensorId!!, paramName, value)
                             }
                         }
@@ -590,7 +575,7 @@ open class HSDConfigFragment : Fragment() {
     }
 
     companion object {
-        private val STWIN_CONFIG_FRAGMENT_TAG = HSDConfigFragment::class.java.name + ".STWIN_CONFIG_FRAGMENT_TAG"
+        private val TAG = "HSDConfigFragment"
         private val WIFI_CONFIG_FRAGMENT_TAG = HSDConfigFragment::class.java.name + ".WIFI_CONFIG_FRAGMENT"
         private val ALIAS_CONFIG_FRAGMENT_TAG = HSDConfigFragment::class.java.name + ".ALIAS_CONFIG_FRAGMENT"
         private const val PICKFILE_REQUEST_CODE = 7777
