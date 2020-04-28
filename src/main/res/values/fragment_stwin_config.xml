@@ -2,5 +2,6 @@
 <resources>
     <string name="stwin_log_start_log">Start</string>
     <string name="stwin_log_stop_log">Stop</string>
-    <string name="stwin_log_wificonf_log">Set WiFi Credentials</string>
+    <string name="hsd_wi_fi_configuration">Set WiFi Credentials</string>
+    <string name="hsd_cancel">Cancel</string>
 </resources>

@@ -453,11 +453,15 @@ open class HSDConfigFragment : Fragment() {
         builder.show()
     }
 
-    override fun onStart() {
-        super.onStart()
-        val node = arguments?.getString(NODE_TAG_EXTRA)?.let {
+    private fun getNode():Node?{
+        return arguments?.getString(NODE_TAG_EXTRA)?.let {
             Manager.getSharedInstance().getNodeWithTag(it)
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        val node = getNode()
         if(node!=null){
             enableNeededNotification(node)
         }
@@ -466,9 +470,7 @@ open class HSDConfigFragment : Fragment() {
     override fun onStop() {
         super.onStop()
         Log.d("HSDConf","STOP")
-        val node = arguments?.getString(NODE_TAG_EXTRA)?.let {
-            Manager.getSharedInstance().getNodeWithTag(it)
-        }
+        val node = getNode()
         if(node!=null){
             disableNeedNotification(node)
         }
@@ -535,43 +537,18 @@ open class HSDConfigFragment : Fragment() {
                 .commit()
     }
 
-    //NOTE unHide to enable WiFi configuration dialog (unHide also the menu item)
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val id = item.itemId
-        if (id == R.id.menu_wifiConfSTWIN_HS_Datalog) {
-            wifiConfDialog = Dialog(requireContext())
-            wifiConfDialog!!.setContentView(R.layout.stwin_dialog_wifi_conf)
-
-            // set the custom dialog components - text, image and button
-            val ssid = wifiConfDialog!!.findViewById<EditText>(R.id.stwin_wifi_ssid)
-            val psswd = wifiConfDialog!!.findViewById<EditText>(R.id.stwin_wifi_password)
-            val wifiSwitch = wifiConfDialog!!.findViewById<Switch>(R.id.stwin_wifi_switch)
-            val sendConfigButton = wifiConfDialog!!.findViewById<Button>(R.id.stwin_wifi_sendConfButton)
-            // if button is clicked, send currently written Wi-Fi credentials
-            /*sendConfigButton.setOnClickListener(v -> {
-                String jsonWiFiConfMessage =  deviceManager.createConfigWifiCredentialsCommand(ssid.getText().toString(),
-                        psswd.getText().toString(),
-                        wifiSwitch.isChecked());
-                encapsulateAndSend(jsonWiFiConfMessage);
-                wifiConfDialog.dismiss();
-            });*/
-            val closeButton = wifiConfDialog!!.findViewById<Button>(R.id.stwin_wifi_cancelButton)
-            // if button is clicked, close the custom dialog
-            closeButton.setOnClickListener { v: View? -> wifiConfDialog!!.dismiss() }
-
-            /* Switch wifiSwitch = wifiConfDialog.findViewById(R.id.stwin_wifi_switch);
-            wifiSwitch.setOnCheckedChangeListener((compoundButton, b) -> {
-                String jsonWiFiConfMessage =  deviceManager.createWifiOnOffCommand(b);
-                encapsulateAndSend(jsonWiFiConfMessage);
-            });*/wifiConfDialog!!.show()
-            /*DisplayMetrics metrics = getResources().getDisplayMetrics();
-            int width = metrics.widthPixels;
-            wifiConfDialog.getWindow().setLayout((6 * width)/7, ViewGroup.LayoutParams.WRAP_CONTENT);
-
-            String message = deviceManager.createGETWiFiConfCommand();
-            encapsulateAndSend(message);*/
+        return when(item.itemId){
+            R.id.menu_wifiConfSTWIN_HS_Datalog -> {
+                val node = getNode()
+                if(node!=null) {
+                    val wifSettings = WiFiConfigureDialogFragment.newInstance(node)
+                    wifSettings.show(childFragmentManager, WIFI_CONFIG_FRAGMENT_TAG)
+                }
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
-        return super.onOptionsItemSelected(item)
     }
 
     private fun showSaveDialog() {
@@ -620,6 +597,7 @@ open class HSDConfigFragment : Fragment() {
 
     companion object {
         private val STWIN_CONFIG_FRAGMENT_TAG = HSDConfigFragment::class.java.name + ".STWIN_CONFIG_FRAGMENT_TAG"
+        private val WIFI_CONFIG_FRAGMENT_TAG = HSDConfigFragment::class.java.name + ".WIFI_CONFIG_FRAGMENT"
         private const val PICKFILE_REQUEST_CODE = 7777
         private val NODE_TAG_EXTRA = HSDConfigFragment::class.java.name + ".NODE_TAG_EXTRA"
 

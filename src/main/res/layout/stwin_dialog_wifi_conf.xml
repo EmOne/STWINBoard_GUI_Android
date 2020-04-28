@@ -2,115 +2,43 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp"
     xmlns:tools="http://schemas.android.com/tools"
-    android:gravity="center_horizontal"
-    android:orientation="vertical"
-    android:padding="10dp">
+    android:orientation="vertical">
 
-    <TextView
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
-        android:layout_height="64dp"
-        android:background="@color/colorPrimary"
-        android:gravity="center"
-        android:scaleType="center"
-        android:textAlignment="center"
-        android:textColor="@android:color/white"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="16dp"
-        android:text="@string/hsd_wi_fi_configuration" />
+        android:layout_height="wrap_content">
 
-    <androidx.cardview.widget.CardView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:cardBackgroundColor="@android:color/white"
-        android:layout_marginTop="16dp"
-        app:cardCornerRadius="8dp"
-        app:cardElevation="4dp"
-        app:contentPadding="8dp">
-
-        <LinearLayout
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/wifiConf_ssid_value"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal">
+            android:layout_height="wrap_content"
+            android:hint="@string/wifiConf_ssid_hint" />
+    </com.google.android.material.textfield.TextInputLayout>
 
-            <TextView
-                android:id="@+id/stwin_wifi_ip_label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:padding="8dp"
-                android:text="@string/hsd_current_ip"
-                android:textAlignment="textEnd" />
-
-            <TextView
-                android:id="@+id/stwin_wifi_ip_value"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:padding="8dp"
-                android:text="@string/hsd_unavailable"
-                android:textAlignment="textStart"
-                android:textStyle="bold" />
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
-
-    <View
-        android:id="@+id/divider"
-        android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginBottom="8dp"
-        android:background="?android:attr/listDivider" />
-
-    <EditText
-        android:id="@+id/stwin_wifi_ssid"
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/hsd_ssid"
-        android:textSize="14sp" />
+        app:passwordToggleEnabled="true">
 
-    <EditText
-        android:id="@+id/stwin_wifi_password"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/hsd_password"
-        android:inputType="textPassword"
-        android:textSize="14sp" />
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/wifiConf_password_value"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/wifiConf_password_hint"
+            android:inputType="textPassword" />
+    </com.google.android.material.textfield.TextInputLayout>
+
 
     <Switch
-        android:id="@+id/stwin_wifi_switch"
+        android:id="@+id/wifiConf_enable_switch"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:checked="false"
         android:padding="4dp"
-        android:text="@string/hsd_enable_wi_fi" />
-
-    <View
-        android:id="@+id/divider2"
-        android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp"
-        android:background="?android:attr/listDivider" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center">
-        <Button
-            android:id="@+id/stwin_wifi_sendConfButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/hsd_send" />
-        <Button
-            android:id="@+id/stwin_wifi_cancelButton"
-            android:text="@string/hsd_cancel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-    </LinearLayout>
+        android:text="@string/wifiConf_enable_wifi" />
 
 </LinearLayout>

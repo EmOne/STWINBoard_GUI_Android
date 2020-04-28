@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wificonf_title">Wi-Fi Configuration</string>
+    <string name="wifiConf_ssid_hint">Ssid</string>
+    <string name="wifiConf_password_hint">Password</string>
+    <string name="wifiConf_enable_wifi">Enable Wi-Fi</string>
+    <string name="wifiConf_set_button">Set</string>
+    <string name="wifiConf_cancel_button">Cancel</string>
+</resources>
