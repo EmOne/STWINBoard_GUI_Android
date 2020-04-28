@@ -45,7 +45,6 @@ import android.content.res.Resources
 import android.net.Uri
 import android.os.AsyncTask
 import android.os.Bundle
-import android.os.ParcelFileDescriptor
 import android.text.InputFilter
 import android.text.InputFilter.LengthFilter
 import android.util.Log
@@ -55,7 +54,11 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.*
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.snackbar.SnackbarContentLayout
 import com.st.BlueSTSDK.Feature
 import com.st.BlueSTSDK.Feature.FeatureListener
 import com.st.BlueSTSDK.Features.FeatureHSDatalogConfig
@@ -88,6 +91,8 @@ open class HSDConfigFragment : Fragment() {
     var startMenuItem: MenuItem? = null
     var mLoadConfTask: LoadConfTask? = null
     private var mSTWINConf: FeatureHSDatalogConfig? = null
+
+    private val viewModel by viewModels<HSDConfigViewModel>()
 
     /**
      * listener for the STWIN Conf feature, it will
@@ -325,44 +330,30 @@ open class HSDConfigFragment : Fragment() {
         }
     }
 
-    private fun openJSONSelector() {
-        val chooserFile = Intent(Intent.ACTION_OPEN_DOCUMENT)
-        chooserFile.addCategory(Intent.CATEGORY_DEFAULT)
-        val chooserTitle: CharSequence = "Load a configuration JSON"
-        chooserFile.type = "application/octet-stream"
+    private fun requestConfigurationFile() {
+        val chooserFile = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_DEFAULT)
+            type = PICKFILE_REQUEST_TYPE
+        }
+        val chooserTitle = getString(R.string.hsdl_configFileChooserTitle)
         startActivityForResult(Intent.createChooser(chooserFile, chooserTitle), PICKFILE_REQUEST_CODE)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        var jsonUri: Uri? = null
-        if (requestCode == PICKFILE_REQUEST_CODE
-                && resultCode == Activity.RESULT_OK) {
-            if (data != null) {
-                jsonUri = data.data
-            }
-            //Log.e("TEST", "JSON URI= " + jsonUri);
-            val loadJSONTask = LoadJSONTask()
-            loadJSONTask.execute(jsonUri)
-        } else if (requestCode == CREATE_FILE
-                && resultCode == Activity.RESULT_OK) {
-            if (data != null) {
-                jsonUri = data.data
-            }
-            val pfd: ParcelFileDescriptor?
-            try {
-                if (jsonUri != null) {
-                    pfd = requireContext().contentResolver.openFileDescriptor(jsonUri, "w")
-                    val fileOutputStream = FileOutputStream(pfd!!.fileDescriptor)
-                    fileOutputStream.write(deviceManager!!.jsoNfromDevice.toString().toByteArray())
-                    fileOutputStream.close()
-                    pfd.close()
-                    val loadConfTask = LoadConfTask()
-                    loadConfTask.execute(deviceManager!!.jsoNfromDevice)
+        when (requestCode) {
+            PICKFILE_REQUEST_CODE -> {
+                val fileUri = data?.data
+                if (resultCode == Activity.RESULT_OK) {
+                    viewModel.loadConfigFromFile(fileUri,requireContext().contentResolver)
                 }
-            } catch (e: IOException) {
-                e.printStackTrace()
             }
+            CREATE_FILE_REQUEST_CODE -> {
+                val fileUri = data?.data
+                if (resultCode == Activity.RESULT_OK) {
+                    viewModel.storeConfigToFile(fileUri,requireContext().contentResolver)
+                }
+            }
+            else -> super.onActivityResult(requestCode, resultCode, data)
         }
     }
 
@@ -399,10 +390,14 @@ open class HSDConfigFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         val root = inflater.inflate(R.layout.fragment_stwin_config, container, false)
-        mLoadConfigButton = root.findViewById(R.id.loadConfButton)
-        mLoadConfigButton?.setOnClickListener(View.OnClickListener { view: View? -> openJSONSelector() })
-        mSaveConfigButton = root.findViewById(R.id.saveConfButton)
-        mSaveConfigButton?.setOnClickListener(View.OnClickListener { view: View? -> showSaveDialog() })
+
+        root.findViewById<View>(R.id.loadConfButton).setOnClickListener {
+            requestConfigurationFile()
+        }
+
+        root.findViewById<View>(R.id.saveConfButton).setOnClickListener {
+            showSaveDialog()
+        }
 
         recyclerView = root.findViewById(R.id.sensors_list)
         mTaggingMaskView = root.findViewById(R.id.start_log_mask)
@@ -411,6 +406,19 @@ open class HSDConfigFragment : Fragment() {
         mDataTransferAnimation = AnimationUtils.loadAnimation(requireContext().applicationContext, R.anim.move_right_full)
         unobscureConfig(mTaggingMaskView, dataImageView)
         return root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        viewModel.error.observe(viewLifecycleOwner, Observer { error ->
+            if(error!=null)
+                displayErrorMessage(error)
+        })
+    }
+
+    private fun displayErrorMessage(error: HSDConfigViewModel.Error) {
+        Snackbar.make(requireView(),error.toStringRes,Snackbar.LENGTH_SHORT)
+                .show()
     }
 
     private fun getNode():Node?{
@@ -536,11 +544,12 @@ open class HSDConfigFragment : Fragment() {
         saveButton.setOnClickListener { view: View? ->
             dialog.dismiss()
             if (localSwitch.isChecked) {
-                val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
-                intent.addCategory(Intent.CATEGORY_OPENABLE)
-                intent.type = "application/octet-stream"
-                intent.putExtra(Intent.EXTRA_TITLE, "STWIN_conf.json")
-                startActivityForResult(intent, CREATE_FILE)
+                val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                    addCategory(Intent.CATEGORY_OPENABLE)
+                    type = PICKFILE_REQUEST_TYPE
+                    putExtra(Intent.EXTRA_TITLE, DEFAULT_CONFI_NAME)
+                }
+                startActivityForResult(intent, CREATE_FILE_REQUEST_CODE)
             }
             if (boardSwitch.isChecked) {
                 //TODO send save config on board command (ToBeDefined)
@@ -557,6 +566,8 @@ open class HSDConfigFragment : Fragment() {
         private val WIFI_CONFIG_FRAGMENT_TAG = HSDConfigFragment::class.java.name + ".WIFI_CONFIG_FRAGMENT"
         private val ALIAS_CONFIG_FRAGMENT_TAG = HSDConfigFragment::class.java.name + ".ALIAS_CONFIG_FRAGMENT"
         private const val PICKFILE_REQUEST_CODE = 7777
+        private const val PICKFILE_REQUEST_TYPE = "application/octet-stream"
+        private const val DEFAULT_CONFI_NAME = "STWIN_conf.json"
         private val NODE_TAG_EXTRA = HSDConfigFragment::class.java.name + ".NODE_TAG_EXTRA"
 
         fun newInstance(node: Node): Fragment {
@@ -567,7 +578,7 @@ open class HSDConfigFragment : Fragment() {
             }
         }
 
-        private const val CREATE_FILE = 1
+        private const val CREATE_FILE_REQUEST_CODE = 1
         @JvmStatic
         fun getPxfromDp(res: Resources, yourdp: Int): Int {
             return TypedValue.applyDimension(
@@ -584,4 +595,14 @@ open class HSDConfigFragment : Fragment() {
             editText.filters = FilterArray
         }
     }
+
+    private val HSDConfigViewModel.Error.toStringRes:Int
+        get() = when(this){
+            HSDConfigViewModel.Error.InvalidFile -> R.string.hsdl_error_invalidFile
+            HSDConfigViewModel.Error.FileNotFound -> R.string.hsdl_error_fileNotFound
+            HSDConfigViewModel.Error.ImpossibleReadFile -> R.string.hsdl_error_readError
+            HSDConfigViewModel.Error.ImpossibleWriteFile -> R.string.hsdl_error_writeError
+            HSDConfigViewModel.Error.ImpossibleCreateFile -> R.string.hsdl_error_createError
+        }
 }
+
