@@ -50,7 +50,12 @@
         app:actionLayout="@layout/menu_stop_stwin_hs_log_item"
         android:showAsAction="always" />
     <item
-        android:id="@+id/menu_wifiConfSTWIN_HS_Datalog"
+        android:id="@+id/menu_hsdl_wifiConf"
         android:title="@string/hsd_wi_fi_configuration"
+        android:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_hsdl_changeAlias"
+        android:title="@string/hsdl_changeAlias"
         android:showAsAction="never" />
 </menu>

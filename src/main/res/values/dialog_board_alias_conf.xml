@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="aliasConf_title">Board Alias</string>
+    <string name="aliasConf_alias_hint">New board alias</string>
+
+</resources>

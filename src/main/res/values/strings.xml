@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="hsd_start_log" tools:ignore="MissingTranslation">Start</string>
-    <string name="hsd_stop_log" tools:ignore="MissingTranslation">Start</string>
+    <string name="hsd_stop_log" tools:ignore="MissingTranslation">Stop</string>
     <string name="hsd_save_locally">Save locally on the phone</string>
     <string name="hsd_save_on_device">Save permanently on the board</string>
     <string name="hsd_save">Save</string>
+
+    <string name="confDialog_set_button">Set</string>
+    <string name="confDialog_cancel_button">Cancel</string>
 </resources>

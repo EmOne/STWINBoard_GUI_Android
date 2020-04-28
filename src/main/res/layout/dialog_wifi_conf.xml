@@ -3,8 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="16dp"
-    xmlns:tools="http://schemas.android.com/tools"
+    android:paddingStart="@dimen/dialog_startPadding"
+    android:paddingEnd="@dimen/dialog_endPadding"
+    android:paddingTop="@dimen/dialog_topPadding"
+    android:paddingBottom="@dimen/dialog_bottomPadding"
     android:orientation="vertical">
 
     <com.google.android.material.textfield.TextInputLayout

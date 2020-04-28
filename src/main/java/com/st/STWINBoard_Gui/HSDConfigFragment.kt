@@ -39,7 +39,6 @@ package com.st.STWINBoard_Gui
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.Dialog
-import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.res.Resources
@@ -89,9 +88,6 @@ open class HSDConfigFragment : Fragment() {
     private var mDataTransferAnimation: Animation? = null
     var stopMenuItem: MenuItem? = null
     var startMenuItem: MenuItem? = null
-    var wifiConfDialog: Dialog? = null
-    var ssid: EditText? = null
-    var psswd: EditText? = null
     var mLoadConfTask: LoadConfTask? = null
     private var mSTWINConf: FeatureHSDatalogConfig? = null
 
@@ -427,32 +423,6 @@ open class HSDConfigFragment : Fragment() {
         return root
     }
 
-    private fun showChangeAliasDialog(context: Context?, mDeviceAlias: TextView?) {
-        val builder = AlertDialog.Builder(context)
-        builder.setTitle("change your device alias")
-        val editText = EditText(context)
-        val elp = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-        editText.setText(mDeviceAlias!!.text)
-        editText.layoutParams = elp
-        setEditTextMaxLength(editText, 10)
-        val lp = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-        val layout = LinearLayout(context)
-        layout.layoutParams = lp
-        val px = getPxfromDp(resources, 22)
-        layout.setPadding(px, px, px, 0)
-        layout.addView(editText)
-        builder.setView(layout)
-        builder.setNegativeButton("CANCEL", null)
-        builder.setPositiveButton("OK") { dialogInterface: DialogInterface?, i: Int ->
-            val newAlias = editText.text.toString()
-            mDeviceAlias.text = newAlias
-            deviceManager!!.setDeviceAlias(newAlias)
-            val changeAliasMessage = deviceManager!!.createSetDeviceAliasCommand(newAlias)
-            deviceManager!!.encapsulateAndSend(changeAliasMessage)
-        }
-        builder.show()
-    }
-
     private fun getNode():Node?{
         return arguments?.getString(NODE_TAG_EXTRA)?.let {
             Manager.getSharedInstance().getNodeWithTag(it)
@@ -539,11 +509,19 @@ open class HSDConfigFragment : Fragment() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when(item.itemId){
-            R.id.menu_wifiConfSTWIN_HS_Datalog -> {
+            R.id.menu_hsdl_wifiConf -> {
                 val node = getNode()
                 if(node!=null) {
                     val wifSettings = WiFiConfigureDialogFragment.newInstance(node)
                     wifSettings.show(childFragmentManager, WIFI_CONFIG_FRAGMENT_TAG)
+                }
+                true
+            }
+            R.id.menu_hsdl_changeAlias -> {
+                val node = getNode()
+                if(node!=null) {
+                    val aliasSettings = BoardAliasConfDialogFragment.newInstance(node)
+                    aliasSettings.show(childFragmentManager, ALIAS_CONFIG_FRAGMENT_TAG)
                 }
                 true
             }
@@ -598,6 +576,7 @@ open class HSDConfigFragment : Fragment() {
     companion object {
         private val STWIN_CONFIG_FRAGMENT_TAG = HSDConfigFragment::class.java.name + ".STWIN_CONFIG_FRAGMENT_TAG"
         private val WIFI_CONFIG_FRAGMENT_TAG = HSDConfigFragment::class.java.name + ".WIFI_CONFIG_FRAGMENT"
+        private val ALIAS_CONFIG_FRAGMENT_TAG = HSDConfigFragment::class.java.name + ".ALIAS_CONFIG_FRAGMENT"
         private const val PICKFILE_REQUEST_CODE = 7777
         private val NODE_TAG_EXTRA = HSDConfigFragment::class.java.name + ".NODE_TAG_EXTRA"
 
