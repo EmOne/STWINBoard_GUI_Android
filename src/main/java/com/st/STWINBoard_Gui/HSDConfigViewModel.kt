@@ -11,7 +11,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.FileNotFoundException
 import java.io.IOError
-import java.nio.charset.Charset
 
 internal class HSDConfigViewModel : ViewModel(){
 

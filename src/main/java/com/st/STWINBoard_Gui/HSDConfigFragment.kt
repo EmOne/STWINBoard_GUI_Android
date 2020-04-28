@@ -58,7 +58,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
-import com.google.android.material.snackbar.SnackbarContentLayout
 import com.st.BlueSTSDK.Feature
 import com.st.BlueSTSDK.Feature.FeatureListener
 import com.st.BlueSTSDK.Features.FeatureHSDatalogConfig
@@ -81,8 +80,6 @@ open class HSDConfigFragment : Fragment() {
     private var deviceManager: DeviceManager? = null
     private var recyclerView: RecyclerView? = null
     private var mSensorsAdapter: SensorViewAdapter? = null
-    private var mLoadConfigButton: Button? = null
-    private var mSaveConfigButton: Button? = null
     private var mTaggingMaskView: LinearLayout? = null
     private var mMaskView: LinearLayout? = null
     private var dataImageView: ImageView? = null
@@ -312,7 +309,38 @@ open class HSDConfigFragment : Fragment() {
                 mSensorsAdapter = SensorViewAdapter(
                         context!!,
                         R.layout.sensor_item,
-                        dm.deviceModel.sensors, OnSensorSwitchClickedListener { sensorId: Int -> manageSensorSwitchClicked(sensorId) }, OnSensorSpinnerValueSelectedListener { sensorId: Int, paramName: String, value: String -> manageSensorSpinnerSelection(sensorId, paramName, value) }, OnSensorEditTextChangedListener { sensorId: Int, paramName: String, value: String -> manageSensorEditTextChanged(sensorId, paramName, value) }, OnSubSensorIconClickedListener { sensorId: Int, subSensorId: Int -> manageSubSensorIconClicked(sensorId, subSensorId) }, OnSubSensorSpinnerValueSelectedListener { sensorId: Int, subSensorId: Int, paramName: String, value: String -> manageSubSensorSpinnerSelection(sensorId, subSensorId, paramName, value) }, OnSubSensorEditTextChangedListener { sensorId: Int, subSensorId: Int, paramName: String, value: String -> manageSubSensorEditTextChanged(sensorId, subSensorId, paramName, value) })
+                        dm.deviceModel.sensors,
+                        object : OnSensorSwitchClickedListener{
+                            override fun onSensorSwitchClicked(sensorId: Int) {
+                                manageSensorSwitchClicked(sensorId)
+                            }
+                        } ,
+                        object : OnSensorSpinnerValueSelectedListener {
+                            override fun onSpinnerValueSelected(sensorId: Int, paramName: String, value: String) {
+                                manageSensorSpinnerSelection(sensorId, paramName, value)
+                            }
+                        },
+                        object : OnSensorEditTextChangedListener {
+                            override fun onEditTextValueChanged(sensorId: Int, paramName: String, value: String) {
+                                manageSensorEditTextChanged(sensorId, paramName, value)
+                            }
+                        },
+                        object : OnSubSensorIconClickedListener {
+                            override fun onSubSensorIconClicked(sensorId: Int, subSensorId: Int) {
+                                manageSubSensorIconClicked(sensorId, subSensorId)
+                            }
+                        },
+                        object : OnSubSensorSpinnerValueSelectedListener {
+                            override fun onSpinnerValueSelected(sensorId: Int, subSensorId: Int?, paramName: String, value: String) {
+                                manageSubSensorSpinnerSelection(sensorId, subSensorId!!, paramName, value)
+                            }
+                        },
+                        object : OnSubSensorEditTextChangedListener {
+                            override fun onSubSensorEditTextValueChanged(sensorId: Int, subSensorId: Int?, paramName: String, value: String) {
+                                manageSubSensorEditTextChanged(sensorId, subSensorId!!, paramName, value)
+                            }
+                        }
+                )
                 // Set the adapter
                 recyclerView!!.adapter = mSensorsAdapter
 
