@@ -34,9 +34,8 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
-package com.st.STWINBoard_Gui.Utils;
+package logger;
 
-import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
@@ -51,13 +50,19 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.st.clab.stwin.gui.R;
 
 import java.util.List;
 
-public class HSDAnnotationListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class HSDAnnotationListAdapter extends
+        ListAdapter<HSDAnnotation,RecyclerView.ViewHolder>{
+
+    HSDAnnotationListAdapter(){
+        super(new HSDAnnotationDiffCallback());
+    }
 
     public interface AnnotationInteractionCallback {
         void onAnnotationSelected(HSDAnnotation selected);
@@ -70,68 +75,52 @@ public class HSDAnnotationListAdapter extends RecyclerView.Adapter<RecyclerView.
         void onLabelInChanging(HSDAnnotation annotation, String label);
     }
 
-    private final static int TYPE_AI = 1;
     private final static int TYPE_HSD_SW = 2;
     private final static int TYPE_HSD_HW = 3;
 
-    private final LayoutInflater mInflater;
-    private List<HSDAnnotation> mAnnotation; // Cached copy of words
     private AnnotationInteractionCallback mCallback;
 
-    public HSDAnnotationListAdapter(Context context) { mInflater = LayoutInflater.from(context); }
+    //public HSDAnnotationListAdapter(Context context) { mInflater = LayoutInflater.from(context); }
 
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view;
-        switch (viewType){
-            case TYPE_HSD_SW:
-                view = mInflater.inflate(R.layout.hsd_log_sw_annotation_item, parent, false);
-                return new HSD_SWViewHolder(view);
-            case TYPE_HSD_HW:
-                view = mInflater.inflate(R.layout.hsd_log_hw_annotation_item, parent, false);
-                return new HSD_HWViewHolder(view);
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+        if(viewType == TYPE_HSD_SW) {
+            View view = inflater.inflate(R.layout.hsd_log_sw_annotation_item, parent, false);
+            return new HSD_SWViewHolder(view);
+        }else{
+            View view = inflater.inflate(R.layout.hsd_log_hw_annotation_item, parent, false);
+            return new HSD_HWViewHolder(view);
         }
-        return null;
     }
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         switch (getItemViewType(position)){
             case TYPE_HSD_SW:
-                ((HSD_SWViewHolder)holder).setAnnotation(mAnnotation.get(position));
-                ((HSD_SWViewHolder)holder).tagSelector.setChecked(mAnnotation.get(position).isSelected());
+                ((HSD_SWViewHolder)holder).setAnnotation(getItem(position));
+                ((HSD_SWViewHolder)holder).tagSelector.setChecked(getItem(position).isSelected());
                 break;
             case TYPE_HSD_HW:
-                ((HSD_HWViewHolder)holder).setAnnotation(mAnnotation.get(position));
+                ((HSD_HWViewHolder)holder).setAnnotation(getItem(position));
                 break;
         }
     }
 
     @Override
     public int getItemViewType(int position) {
-        if((mAnnotation.get(position)).getTagType().equals(HSDAnnotation.TagType.SW))
+        if((getItem(position)).getTagType().equals(HSDAnnotation.TagType.SW))
             return TYPE_HSD_SW;
         else
             return TYPE_HSD_HW;
     }
 
-    public void setAnnotation(List<HSDAnnotation> newAnnotation){
-        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new HSDAnnotationDiffCallback(this.mAnnotation,newAnnotation));
-        diffResult.dispatchUpdatesTo(this);
-        mAnnotation = newAnnotation;
-    }
 
     public void setOnAnnotationInteractionCallback(AnnotationInteractionCallback callback){
         mCallback = callback;
     }
 
-    @Override
-    public int getItemCount() {
-        if(mAnnotation==null)
-            return 0;
-        return mAnnotation.size();
-    }
 
     class HSD_SWViewHolder extends HSD_HWViewHolder {
         final CompoundButton tagSelector;
@@ -168,12 +157,8 @@ public class HSDAnnotationListAdapter extends RecyclerView.Adapter<RecyclerView.
             }
         }
 
-        /*@Override
-        void lockSelectedTag(boolean lock, boolean isSelected){
-            super.lockSelectedTag(lock,isSelected);
-            tagSelector.setEnabled(!lock);
-        }*/
     }
+
 
     class HSD_HWViewHolder extends RecyclerView.ViewHolder {
 

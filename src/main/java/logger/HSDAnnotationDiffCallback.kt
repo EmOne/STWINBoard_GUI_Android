@@ -34,43 +34,16 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  */
-package com.st.STWINBoard_Gui.Utils;
+package logger
 
-import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.DiffUtil
 
-import java.util.List;
-
-class HSDAnnotationDiffCallback extends DiffUtil.Callback {
-    private List<HSDAnnotation> oldList;
-    private List<HSDAnnotation> newList;
-
-    HSDAnnotationDiffCallback(List<HSDAnnotation> oldList, List<HSDAnnotation> newList) {
-        this.newList = newList;
-        this.oldList = oldList;
+internal class HSDAnnotationDiffCallback : DiffUtil.ItemCallback<HSDAnnotation>() {
+    override fun areItemsTheSame(oldItem: HSDAnnotation, newItem: HSDAnnotation): Boolean {
+        return oldItem.id == newItem.id
     }
 
-    @Override
-    public int getOldListSize() {
-        if(oldList == null)
-            return 0;
-        return oldList.size();
+    override fun areContentsTheSame(oldItem: HSDAnnotation, newItem: HSDAnnotation): Boolean {
+        return oldItem == newItem
     }
-
-    @Override
-    public int getNewListSize() {
-        if(newList == null)
-            return 0;
-        return newList.size();
-    }
-
-    @Override
-    public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
-        return oldList.get(oldItemPosition).equals(newList.get(newItemPosition));
-    }
-
-    @Override
-    public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
-        return oldList.get(oldItemPosition).equals(newList.get(newItemPosition));
-    }
-
 }

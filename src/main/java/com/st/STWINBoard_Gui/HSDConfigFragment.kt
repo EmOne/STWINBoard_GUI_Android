@@ -52,7 +52,6 @@ import android.text.InputFilter.LengthFilter
 import android.util.Log
 import android.util.TypedValue
 import android.view.*
-import android.view.View.OnLongClickListener
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.*
@@ -64,12 +63,12 @@ import com.st.BlueSTSDK.Features.FeatureHSDatalogConfig
 import com.st.BlueSTSDK.HSDatalog.Device
 import com.st.BlueSTSDK.Manager
 import com.st.BlueSTSDK.Node
-import com.st.BlueSTSDK.gui.demos.DemoFragment
 import com.st.STWINBoard_Gui.Control.DeviceManager
-import com.st.STWINBoard_Gui.HSDTaggingFragment.HSDInteractionCallback
+import logger.HSDTaggingFragment.HSDInteractionCallback
 import com.st.STWINBoard_Gui.Utils.SensorViewAdapter
 import com.st.STWINBoard_Gui.Utils.SensorViewAdapter.*
 import com.st.clab.stwin.gui.R
+import logger.HSDTaggingFragment
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.*
@@ -475,7 +474,10 @@ open class HSDConfigFragment : Fragment() {
         }
     }
 
+    private lateinit var mNode: Node
+
      fun enableNeededNotification(node: Node) {
+         mNode = node;
         mSTWINConf = node.getFeature(FeatureHSDatalogConfig::class.java)
         //NOTE new STWINConf char
         mSTWINConf?.apply {
@@ -525,13 +527,8 @@ open class HSDConfigFragment : Fragment() {
 
     private fun openTaggingFragment() {
         val fm = childFragmentManager
-        val frag = HSDTaggingFragment.newInstance()
-        frag.setOnDoneCLickedCallback(mHSDTagFragmentCallbacks)
-        val bundle = Bundle()
-        bundle.putParcelable("Device", deviceManager!!.deviceModel)
-        bundle.putParcelable("Feature", mSTWINConf)
-        bundle.putBoolean("IsLogging", deviceManager!!.isLogging)
-        frag.arguments = bundle
+        val frag = HSDTaggingFragment.newInstance(mNode)
+        //frag.setOnDoneCLickedCallback(mHSDTagFragmentCallbacks)
         fm.beginTransaction()
                 .add(R.id.start_log_mask, frag, STWIN_CONFIG_FRAGMENT_TAG)
                 .addToBackStack(null)
