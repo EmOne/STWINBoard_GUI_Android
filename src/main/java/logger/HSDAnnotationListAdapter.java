@@ -67,7 +67,6 @@ public class HSDAnnotationListAdapter extends
     public interface AnnotationInteractionCallback {
         void onAnnotationSelected(HSDAnnotation selected);
         void onAnnotationDeselected(HSDAnnotation deselected);
-        void onRemoved(HSDAnnotation annotation);
     }
 
     public interface HSDAnnotationInteractionCallback extends AnnotationInteractionCallback {
@@ -150,7 +149,7 @@ public class HSDAnnotationListAdapter extends
         @Override
         void setAnnotation(HSDAnnotation annotation) {
             super.setAnnotation(annotation);
-            if(currentData.isLocked()){
+            if(currentData.isEditable()){
                 tagSelector.setEnabled(true);
             } else {
                 tagSelector.setEnabled(false);
@@ -202,7 +201,7 @@ public class HSDAnnotationListAdapter extends
             pinDesc.setText(annotation.getPinDesc());
             tagType.setText(annotation.getTagType() == HSDAnnotation.TagType.SW ? "SW" : "HW");
 
-            if(currentData.isLocked()){
+            if(currentData.isEditable()){
                 tagImageView.setVisibility(View.INVISIBLE);
             } else {
                 tagImageView.setVisibility(View.VISIBLE);

@@ -21,7 +21,6 @@ class HSDTaggingViewModel :ViewModel(){
             } else {
                 HSDAnnotation(it.id, it.label, null, HSDAnnotation.TagType.SW)
             }
-            uiAnnotation.isLocked = isLogging
             uiAnnotation
         }
 
@@ -35,6 +34,9 @@ class HSDTaggingViewModel :ViewModel(){
     val annotations:LiveData<List<HSDAnnotation>>
         get() = _annotation
 
+    private val _isEditing = MutableLiveData<Boolean>(false)
+    val isLogging:LiveData<Boolean>
+        get() = _isEditing
 
     fun enableNotification(node: Node){
         mConfigFeature = node.getFeature(FeatureHSDatalogConfig::class.java)
@@ -54,6 +56,28 @@ class HSDTaggingViewModel :ViewModel(){
             disableNotification()
 
         }
+    }
+
+    fun onStartStopLogPressed() {
+        _isEditing.postValue(!_isEditing.value!!)
+    }
+
+    fun removeAnnotation(annotation: HSDAnnotation) {
+        val newList = _annotation.value?.filterNot { it.id==annotation.id }
+        newList?.let { _annotation.postValue(it) }
+    }
+
+    fun addNewTag() {
+
+        val newId = _annotation.value?.maxBy { it.id }?.id?.inc() ?: 0
+        val newTag = HSDAnnotation(newId,"Tag $newId",null,HSDAnnotation.TagType.SW,false,true)
+        val newList = mutableListOf(newTag).apply {
+            val oldList = _annotation.value
+            if(oldList!=null) {
+                addAll(oldList)
+            }
+        }
+        _annotation.postValue(newList)
     }
 
 

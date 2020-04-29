@@ -6,8 +6,7 @@ data class HSDAnnotation(
         var pinDesc: String?,
         var tagType: TagType,
         var isSelected:Boolean = false,
-        var isEditable:Boolean = false,
-        var isLocked:Boolean = false) {
+        var isEditable:Boolean = false) {
     enum class TagType {
         HW, SW
     } //TagType
