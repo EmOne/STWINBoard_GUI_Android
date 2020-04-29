@@ -1,6 +1,5 @@
 package com.st.STWINBoard_Gui.Utils
 
-import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,39 +12,19 @@ import com.st.BlueSTSDK.HSDatalog.Sensor
 import com.st.clab.stwin.gui.R
 
 class SensorViewAdapter(//Activity Context
-        var mContext: Context,
-        resource: Int,
-        sensorList: List<Sensor>,
+        private val mSensorList: List<Sensor>,
         private val mSensorSwitchClickedListener: OnSensorSwitchClickedListener,
-        private val mSensorSpinnerListener: OnSensorSpinnerValueSelectedListener,
         private val mSensorEditTextListener: OnSensorEditTextChangedListener,
         private val mSubSensorIconClickedListener: OnSubSensorIconClickedListener,
-        private val mSubSensorSpinnerValueSelectedListener: OnSubSensorSpinnerValueSelectedListener,
         private val mSubSensorEditTextChangedListener: OnSubSensorEditTextChangedListener) : RecyclerView.Adapter<SensorViewAdapter.ViewHolder>() {
-    //Sensor List
-    var mSensorList: List<Sensor>
 
-    //Layout Inflater
-    var mInflater: LayoutInflater
-
-    //the layout resource file for the list items
-    var mResource: Int
 
     interface OnSwitchClickedListener {
         fun onSensorSwitchClicked(sensorId: Int)
     }
 
     interface OnSensorSwitchClickedListener : OnSwitchClickedListener
-    interface OnSpinnerValueSelectedListener {
-        /**
-         * function call when a spinner value is selected by the user
-         * @param paramName selected param name
-         * @param value selected spinner value
-         */
-        fun onSpinnerValueSelected(sensorId: Int, paramName: String, value: String)
-    }
 
-    interface OnSensorSpinnerValueSelectedListener : OnSpinnerValueSelectedListener
     interface OnEditTextChangedListener {
         /**
          * function call when a spinner value is selected by the user
@@ -55,21 +34,12 @@ class SensorViewAdapter(//Activity Context
     }
 
     interface OnSensorEditTextChangedListener : OnEditTextChangedListener
-    interface OnSubSpinnerValueSelectedListener {
-        /**
-         * function call when a spinner value is selected by the user
-         * @param paramName selected param name
-         * @param value selected spinner value
-         */
-        fun onSpinnerValueSelected(sensorId: Int, subSensorId: Int?, paramName: String, value: String)
+
+    interface SubSensorActiveStatusListener {
+        fun onSubSensorChangeActivationStatus(sensorId: Int, subSensorId: Int,newActiveState:Boolean)
     }
 
-    interface OnSubSensorSpinnerValueSelectedListener : OnSubSpinnerValueSelectedListener
-    interface OnIconClickedListener {
-        fun onSubSensorIconClicked(sensorId: Int, subSensorId: Int)
-    }
-
-    interface OnSubSensorIconClickedListener : OnIconClickedListener
+    interface OnSubSensorIconClickedListener : SubSensorActiveStatusListener
     interface OnSubEditTextChangedListener {
         /**
          * function call when a spinner value is selected by the user
@@ -81,7 +51,8 @@ class SensorViewAdapter(//Activity Context
     interface OnSubSensorEditTextChangedListener : OnSubEditTextChangedListener
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = mInflater.inflate(mResource, parent, false)
+        val inflater = LayoutInflater.from(parent.context)
+        val view = inflater.inflate(R.layout.item_sensor, parent, false)
         return ViewHolder(view)
     }
 
@@ -97,11 +68,9 @@ class SensorViewAdapter(//Activity Context
         }
         holder.mSensorParamListView.adapter = sensorParamsAdapter
         val subSensorParamsAdapter = SubSensorViewAdapter(
-                mContext,
                 s,
                 mSubSensorIconClickedListener,
-                mSubSensorEditTextChangedListener,
-                mSubSensorSpinnerValueSelectedListener)
+                mSubSensorEditTextChangedListener)
         holder.mSubSensorListView.adapter = subSensorParamsAdapter
         manageSensorStatus(s, holder.mSensorName, holder.mSensorCardMask)
         //subSensorParamsAdapter.notifyDataSetChanged();
@@ -157,10 +126,4 @@ class SensorViewAdapter(//Activity Context
         }
     }
 
-
-    init {
-        mInflater = LayoutInflater.from(mContext)
-        mResource = resource
-        mSensorList = sensorList
-    }
 }

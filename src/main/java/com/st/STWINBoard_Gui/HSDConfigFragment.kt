@@ -61,11 +61,9 @@ import com.google.android.material.snackbar.Snackbar
 import com.st.BlueSTSDK.Feature
 import com.st.BlueSTSDK.Feature.FeatureListener
 import com.st.BlueSTSDK.Features.FeatureHSDatalogConfig
-import com.st.BlueSTSDK.HSDatalog.Device
 import com.st.BlueSTSDK.Manager
 import com.st.BlueSTSDK.Node
 import com.st.STWINBoard_Gui.Control.DeviceManager
-import logger.HSDTaggingFragment.HSDInteractionCallback
 import com.st.STWINBoard_Gui.Utils.SensorViewAdapter
 import com.st.STWINBoard_Gui.Utils.SensorViewAdapter.*
 import com.st.clab.stwin.gui.R
@@ -286,8 +284,6 @@ open class HSDConfigFragment : Fragment() {
                 alertDialog.show()
             } else {
                 mSensorsAdapter = SensorViewAdapter(
-                        context!!,
-                        R.layout.sensor_item,
                         dm.deviceModel.sensors,
                         object : OnSensorSwitchClickedListener{
                             override fun onSensorSwitchClicked(sensorId: Int) {
@@ -295,12 +291,6 @@ open class HSDConfigFragment : Fragment() {
                                 manageSensorSwitchClicked(sensorId)
                             }
                         } ,
-                        object : OnSensorSpinnerValueSelectedListener {
-                            override fun onSpinnerValueSelected(sensorId: Int, paramName: String, value: String) {
-                                Log.d(TAG,"onSpinnerValueSelected $sensorId : $paramName:$value")
-                                manageSensorSpinnerSelection(sensorId, paramName, value)
-                            }
-                        },
                         object : OnSensorEditTextChangedListener {
                             override fun onEditTextValueChanged(sensorId: Int, paramName: String, value: String) {
                                 Log.d(TAG,"onEditTextValueChanged $sensorId -> $paramName:$value")
@@ -308,15 +298,9 @@ open class HSDConfigFragment : Fragment() {
                             }
                         },
                         object : OnSubSensorIconClickedListener {
-                            override fun onSubSensorIconClicked(sensorId: Int, subSensorId: Int) {
-                                Log.d(TAG,"onSubSensorIconClicked $sensorId - $subSensorId")
+                            override fun onSubSensorChangeActivationStatus(sensorId: Int, subSensorId: Int, newState:Boolean) {
+                                Log.d(TAG,"onSubSensorIconClicked $sensorId - $subSensorId enable:$newState")
                                 manageSubSensorIconClicked(sensorId, subSensorId)
-                            }
-                        },
-                        object : OnSubSensorSpinnerValueSelectedListener {
-                            override fun onSpinnerValueSelected(sensorId: Int, subSensorId: Int?, paramName: String, value: String) {
-                                Log.d(TAG,"onSpinnerValueSelected $sensorId - $subSensorId $paramName:$value")
-                                manageSubSensorSpinnerSelection(sensorId, subSensorId!!, paramName, value)
                             }
                         },
                         object : OnSubSensorEditTextChangedListener {

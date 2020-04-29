@@ -1,15 +1,11 @@
 package com.st.STWINBoard_Gui.Utils
 
-import android.content.Context
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
-import androidx.core.content.ContextCompat
+import android.widget.*
 import androidx.recyclerview.widget.RecyclerView
 import com.st.BlueSTSDK.HSDatalog.Sensor
 import com.st.BlueSTSDK.HSDatalog.SubSensorDescriptor
@@ -17,21 +13,15 @@ import com.st.BlueSTSDK.HSDatalog.SubSensorStatus
 import com.st.STWINBoard_Gui.Utils.SensorViewAdapter.*
 import com.st.clab.stwin.gui.R
 
-class SubSensorViewAdapter(//Activity Context
-        var mContext: Context,
+class SubSensorViewAdapter(
         sensor: Sensor,
         private val subSensorIconClickedListener: OnSubSensorIconClickedListener?,
-        private val subSensorEditTextListener: OnSubSensorEditTextChangedListener,
-        private val subSensorSpinnerListener: OnSubSensorSpinnerValueSelectedListener) : RecyclerView.Adapter<SubSensorViewAdapter.ViewHolder>() {
-    var sID: Int
-    var mIsActive: Boolean
+        private val subSensorEditTextListener: OnSubSensorEditTextChangedListener) : RecyclerView.Adapter<SubSensorViewAdapter.ViewHolder>() {
+    private val sID: Int = sensor.id
 
     //SubParam List
-    var mSubSensorList: List<SubSensorDescriptor>
-    var mSubStatusList: List<SubSensorStatus>
-
-    //Layout Inflater
-    var mInflater: LayoutInflater
+    private val mSubSensorList: List<SubSensorDescriptor> = sensor.sensorDescriptor.subSensorDescriptors
+    private val mSubStatusList: List<SubSensorStatus> = sensor.sensorStatus.subSensorStatusList
 
     companion object {
 
@@ -46,59 +36,18 @@ class SubSensorViewAdapter(//Activity Context
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = mInflater.inflate(R.layout.sub_sensor_item, parent, false)
-        return ViewHolder(view)
+        val inflater = LayoutInflater.from(parent.context)
+        val view = inflater.inflate(R.layout.item_sub_sensor, parent, false)
+        return ViewHolder(sID,view)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val subSensorDescriptor = mSubSensorList[position]
         val subSensorStatus = mSubStatusList[position]
-        val mSSCSensorType = subSensorDescriptor.sensorType
-        val subSensorTypeLabel: String
-        var subSensorIcon = ContextCompat.getDrawable(mContext, R.drawable.ic_st_placeholder)
-        when (mSSCSensorType) {
-            "ACC" -> {
-                subSensorIcon = ContextCompat.getDrawable(mContext, R.drawable.ic_accelerometer)
-                subSensorTypeLabel = "Accelerometer"
-            }
-            "MAG" -> {
-                subSensorIcon = ContextCompat.getDrawable(mContext, R.drawable.ic_compass)
-                subSensorTypeLabel = "Magnetometer"
-            }
-            "GYRO" -> {
-                subSensorIcon = ContextCompat.getDrawable(mContext, R.drawable.ic_gyroscope)
-                subSensorTypeLabel = "Gyroscope"
-            }
-            "TEMP" -> {
-                subSensorIcon = ContextCompat.getDrawable(mContext, R.drawable.ic_temperature)
-                subSensorTypeLabel = "Temperature"
-            }
-            "HUM" -> {
-                subSensorIcon = ContextCompat.getDrawable(mContext, R.drawable.ic_humidity)
-                subSensorTypeLabel = "Humidity"
-            }
-            "PRESS" -> {
-                subSensorIcon = ContextCompat.getDrawable(mContext, R.drawable.ic_pressure)
-                subSensorTypeLabel = "Pressure"
-            }
-            "MIC" -> {
-                subSensorIcon = ContextCompat.getDrawable(mContext, R.drawable.ic_microphone)
-                subSensorTypeLabel = "Microphone"
-            }
-            else -> subSensorTypeLabel = ""
-        }
-        holder.mSubSensorType.text = subSensorTypeLabel
-        holder.mSubSensorIcon.setImageDrawable(subSensorIcon)
 
-        val subSensorParamsAdapter = DescriptorParamViewAdapter(
-                subSensorDescriptor.getSubDescriptorParams(),
-                subSensorStatus.params){ descriptorParam, newValue ->
-            subSensorEditTextListener.onSubSensorEditTextValueChanged(sID,subSensorDescriptor.id,descriptorParam.name,newValue)
+        holder.bind(subSensorDescriptor,subSensorStatus)
 
-        }
-
-        holder.mSubSensorListView.setAdapter(subSensorParamsAdapter);
-        manageSubSensorStatus(subSensorStatus, holder.mSubSensorIcon, holder.mSubSensorRowLayoutMask)
+        //manageSubSensorStatus(subSensorStatus, holder.mSubSensorIcon, holder.mSubSensorRowLayoutMask)
     }
 
     override fun getItemCount(): Int {
@@ -117,44 +66,80 @@ class SubSensorViewAdapter(//Activity Context
         }
     }
 
-    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        var mSubSensorRowLayout: LinearLayout
-        var mSubSensorRowLayoutMask: LinearLayout
-        var mSubSensorIcon: ImageView
-        var mSubSensorType: TextView
-        var mSubSensorListView: RecyclerView
+    inner class ViewHolder(sensorId:Int,itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val mSubSensorIcon: ImageView = itemView.findViewById(R.id.subSensor_icon)
+        private val mSubSensorType: TextView = itemView.findViewById(R.id.subSensor_name)
+        private val mSubSensorListView: RecyclerView = itemView.findViewById(R.id.subSensor_paramsList)
+        private val mSubSensorEnabled:Switch = itemView.findViewById(R.id.subSensor_enable)
+        private var mSubSensor:SubSensorDescriptor? = null
+        private var mSubSensorStatus:SubSensorStatus? = null
 
-        init {
-            mSubSensorRowLayout = itemView.findViewById(R.id.subSensorRow)
-            mSubSensorRowLayoutMask = itemView.findViewById(R.id.subSensorRowMask)
-            mSubSensorIcon = itemView.findViewById(R.id.subSensorIcon)
-            mSubSensorType = itemView.findViewById(R.id.subSensorType)
-            mSubSensorListView = itemView.findViewById(R.id.subParamsListView)
-            mSubSensorIcon.setOnClickListener { view: View? ->
-                if (subSensorIconClickedListener != null) {
-                    val position = adapterPosition
-                    subSensorIconClickedListener.onSubSensorIconClicked(sID, mSubSensorList[position].id)
-                    val subSensorStatus = mSubStatusList[position]
-                    manageSubSensorStatus(subSensorStatus, mSubSensorIcon, mSubSensorRowLayoutMask)
-                }
-            }
-            mSubSensorRowLayoutMask.setOnClickListener { view: View? ->
-                if (subSensorIconClickedListener != null) {
-                    val position = adapterPosition
-                    subSensorIconClickedListener.onSubSensorIconClicked(sID, mSubSensorList[position].id)
-                    mSubSensorRowLayoutMask.visibility = View.INVISIBLE
-                    mSubSensorRowLayoutMask.isClickable = false
-                    mSubSensorIcon.clearColorFilter()
-                }
+        private val onCheckedChangeListener  = object : CompoundButton.OnCheckedChangeListener{
+            override fun onCheckedChanged(buttonView: CompoundButton?, isChecked: Boolean) {
+                val subSensor = mSubSensor ?: return
+                subSensorIconClickedListener?.onSubSensorChangeActivationStatus(sensorId,subSensor.id,isChecked)
             }
         }
+
+        fun bind(subSensor:SubSensorDescriptor,subSensorStatus: SubSensorStatus){
+            mSubSensor = subSensor
+            mSubSensorStatus = subSensorStatus
+
+            setSensorData(subSensor.sensorType)
+
+            mSubSensorListView.adapter = DescriptorParamViewAdapter(
+                    subSensor.subDescriptorParams,
+                    subSensorStatus.params){ descriptorParam, newValue ->
+                    subSensorEditTextListener.onSubSensorEditTextValueChanged(sID,subSensor.id,descriptorParam.name,newValue)
+            }
+
+            mSubSensorEnabled.setOnCheckedChangeListener(null)
+            mSubSensorEnabled.isChecked = subSensorStatus.isActive
+            mSubSensorEnabled.setOnCheckedChangeListener(onCheckedChangeListener)
+        }
+
+        private fun setSensorData(sensorType: String) {
+            val subSensorIcon:Int
+            val subSensorTypeLabel:String
+            when (sensorType) {
+                "ACC" -> {
+                    subSensorIcon = R.drawable.ic_accelerometer
+                    subSensorTypeLabel = "Accelerometer"
+                }
+                "MAG" -> {
+                    subSensorIcon = R.drawable.ic_compass
+                    subSensorTypeLabel = "Magnetometer"
+                }
+                "GYRO" -> {
+                    subSensorIcon = R.drawable.ic_gyroscope
+                    subSensorTypeLabel = "Gyroscope"
+                }
+                "TEMP" -> {
+                    subSensorIcon = R.drawable.ic_temperature
+                    subSensorTypeLabel = "Temperature"
+                }
+                "HUM" -> {
+                    subSensorIcon =  R.drawable.ic_humidity
+                    subSensorTypeLabel = "Humidity"
+                }
+                "PRESS" -> {
+                    subSensorIcon =  R.drawable.ic_pressure
+                    subSensorTypeLabel = "Pressure"
+                }
+                "MIC" -> {
+                    subSensorIcon = R.drawable.ic_microphone
+                    subSensorTypeLabel = "Microphone"
+                }
+                else ->{
+                    subSensorTypeLabel = ""
+                    subSensorIcon = R.drawable.ic_st_placeholder
+                }
+            }
+            mSubSensorIcon.setImageResource(subSensorIcon)
+            mSubSensorType.text = subSensorTypeLabel
+        }
+
     }
 
-    init {
-        mInflater = LayoutInflater.from(mContext)
-        sID = sensor.id
-        mIsActive = sensor.sensorStatus.isActive
-        mSubSensorList = sensor.sensorDescriptor.subSensorDescriptors
-        mSubStatusList = sensor.sensorStatus.subSensorStatusList
-    }
+
 }

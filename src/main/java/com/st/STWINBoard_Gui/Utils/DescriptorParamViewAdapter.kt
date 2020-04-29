@@ -4,7 +4,6 @@ import com.st.BlueSTSDK.HSDatalog.StatusParam
 
 import android.text.InputType
 import android.view.*
-import android.view.View.OnFocusChangeListener
 import android.view.inputmethod.EditorInfo
 import android.widget.*
 import android.widget.AdapterView.OnItemSelectedListener
@@ -29,10 +28,10 @@ class DescriptorParamViewAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return if (viewType == EDITABLE_PARAM) {
-            val view = LayoutInflater.from(parent.context).inflate(R.layout.stwin_param_editable, parent, false)
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_param_editable, parent, false)
             ViewHolderEditable(view)
         } else {
-            val view = LayoutInflater.from(parent.context).inflate(R.layout.stwin_param_selectable, parent, false)
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_param_selectable, parent, false)
             ViewHolderSelectable(view)
         }
     }
@@ -66,22 +65,12 @@ class DescriptorParamViewAdapter(
         init {
             mParamValue.setOnEditorActionListener { v: TextView, actionId: Int, event: KeyEvent? ->
                 when (actionId) {
-                    EditorInfo.IME_ACTION_DONE, EditorInfo.IME_ACTION_NEXT, EditorInfo.IME_ACTION_PREVIOUS -> {
-                        /*Log.e("TEST","-->Edit finished!");
-                        Log.e("TEST","-->" + v.getText().toString());*/v.clearFocus()
-                        return@setOnEditorActionListener true
+                    EditorInfo.IME_ACTION_DONE-> {
+                        mParamValuesChange(descriptorParam, v.text.toString())
+                        v.clearFocus()
                     }
                 }
                 false
-            }
-            mParamValue.onFocusChangeListener = OnFocusChangeListener { v: View, hasFocus: Boolean ->
-                if (!hasFocus) {
-                    // code to execute when EditText loses focus
-                    //Log.e("TEST","-->Focus finished!");
-                    //Log.e("TEST","-->" + );
-                    val newValue = (v as EditText).text.toString()
-                    mParamValuesChange(descriptorParam, newValue)
-                }
             }
         }
 
