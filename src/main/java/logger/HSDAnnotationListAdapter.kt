@@ -36,18 +36,10 @@
  */
 package logger
 
-import android.graphics.Color
-import android.graphics.ColorFilter
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffColorFilter
-import android.text.InputType
-import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.EditorInfo
 import android.widget.CompoundButton
-import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.ListAdapter
@@ -60,7 +52,7 @@ internal class HSDAnnotationListAdapter(private val mCallback:AnnotationInteract
     interface AnnotationInteractionCallback {
         fun onAnnotationSelected(selected: AnnotationViewData)
         fun onAnnotationDeselected(deselected: AnnotationViewData)
-        fun onLabelChanged(annotation: AnnotationViewData, label: String)
+        fun requestLabelEditing(annotation: AnnotationViewData)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -77,29 +69,16 @@ internal class HSDAnnotationListAdapter(private val mCallback:AnnotationInteract
     internal class ViewHolder(mCallback: AnnotationInteractionCallback,itemView: View) : RecyclerView.ViewHolder(itemView) {
         private var currentData: AnnotationViewData? = null
 
-        private val tagLabel: EditText = itemView.findViewById(R.id.annotationView_label)
+        private val tagLabel: TextView = itemView.findViewById(R.id.annotationView_label)
         private val tagDescription: TextView = itemView.findViewById(R.id.annotationView_desc)
         private val tagType: TextView = itemView.findViewById(R.id.annotationView_type)
         private val tagEditLabel: ImageView = itemView.findViewById(R.id.annotationView_editLabel)
         private val tagSelector: CompoundButton = itemView.findViewById(R.id.annotationView_selectSwitch)
 
         init {
-
             tagEditLabel.setOnClickListener {
-                enableEditing()
-                tagEditLabel.requestFocus()
-            }
-
-            tagLabel.setOnEditorActionListener { v: TextView, actionId: Int, event: KeyEvent? ->
-                val annotation = currentData ?: return@setOnEditorActionListener false
-                when (actionId) {
-                    EditorInfo.IME_ACTION_DONE-> {
-                        mCallback.onLabelChanged(annotation,v.text.toString())
-                        disableEditing()
-                        v.clearFocus()
-                    }
-                }
-                false
+                val annotation = currentData ?: return@setOnClickListener
+                mCallback.requestLabelEditing(annotation)
             }
         }
 
@@ -124,7 +103,6 @@ internal class HSDAnnotationListAdapter(private val mCallback:AnnotationInteract
 
             setEditableLabelStatus(annotation.isEditable)
             setCheckedStatus(annotation.isSelected)
-            disableEditing()
         }
 
         private fun setEditableLabelStatus(isEditable:Boolean){
@@ -133,18 +111,6 @@ internal class HSDAnnotationListAdapter(private val mCallback:AnnotationInteract
             }else{
                 tagEditLabel.visibility = View.INVISIBLE
             }
-        }
-
-        private fun enableEditing(){
-            tagLabel.isEnabled = true
-            tagLabel.inputType = InputType.TYPE_CLASS_TEXT
-            tagLabel.background.clearColorFilter()
-        }
-
-        private fun disableEditing(){
-            tagLabel.isEnabled = false
-            tagLabel.inputType = InputType.TYPE_NULL
-            tagLabel.background.colorFilter = PorterDuffColorFilter(Color.TRANSPARENT,PorterDuff.Mode.SRC_IN)
         }
 
         private fun setCheckedStatus(isChecked:Boolean){

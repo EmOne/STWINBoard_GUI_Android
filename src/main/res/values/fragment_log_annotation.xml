@@ -5,4 +5,7 @@
     <string name="tagLog_addLog">Add tag</string>
     <string name="tagLog_acquisitionName_hint">Acquisition name</string>
     <string name="tagLog_acquisitionDescription_hint">Acquisition description</string>
+    <string name="tagLog_changeLabel_title">Change the tag label</string>
+    <string name="tagLog_changeLabel_ok">Apply</string>
+    <string name="tagLog_changeLabel_cancel">Cancel</string>
 </resources>

@@ -1,14 +1,16 @@
 package logger
 
 import android.app.Activity
+import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
+import androidx.appcompat.app.AlertDialog
+import androidx.core.view.setPadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
@@ -18,6 +20,7 @@ import com.st.BlueSTSDK.Manager
 import com.st.BlueSTSDK.Node
 import com.st.STWINBoard_Gui.Control.DeviceManager
 import com.st.clab.stwin.gui.R
+import kotlinx.android.synthetic.main.hsd_save_dialog.*
 import logger.HSDAnnotationListAdapter.*
 
 /**
@@ -34,8 +37,8 @@ class HSDTaggingFragment : Fragment() {
     private lateinit var mAddTagButton:Button
 
     private val mAdapter: HSDAnnotationListAdapter = HSDAnnotationListAdapter(object : AnnotationInteractionCallback {
-        override fun onLabelChanged(annotation: AnnotationViewData, label: String) {
-            viewModel.changeTagLabel(annotation,label)
+        override fun requestLabelEditing(annotation: AnnotationViewData) {
+            buildNewLabelDialog(annotation)
         }
 
         override fun onAnnotationSelected(selected: AnnotationViewData) {
@@ -47,6 +50,25 @@ class HSDTaggingFragment : Fragment() {
         }
 
     })
+
+    private fun buildNewLabelDialog(annotation: AnnotationViewData) {
+        val context = requireContext()
+        val view = LayoutInflater.from(context).inflate(R.layout.dialog_change_label,null,false)
+        val textView = view.findViewById<EditText>(R.id.tagLog_changeLabel_value)
+        textView.setText(annotation.label)
+        val dialog = AlertDialog.Builder(requireContext())
+                .setTitle(R.string.tagLog_changeLabel_title)
+                .setView(view)
+                .setPositiveButton(R.string.tagLog_changeLabel_ok){dialog,_ ->
+                    viewModel.changeTagLabel(annotation,textView.text.toString())
+                    dialog.dismiss()
+                }
+                .setNegativeButton(R.string.tagLog_changeLabel_cancel){ dialog,_ ->
+                    dialog.dismiss()
+                }
+                .create()
+        dialog.show()
+    }
 
     var mDeviceManager: DeviceManager? = null
 
