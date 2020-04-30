@@ -95,17 +95,17 @@ internal class HSDAnnotationListAdapter(private val mCallback:AnnotationInteract
                 tagDescription.visibility = View.INVISIBLE
             }
 
-            tagSelector.visibility = if(annotation.isSelectable){
-                View.INVISIBLE
-            }else{
+            tagSelector.visibility = if(annotation.userCanSelect){
                 View.VISIBLE
+            }else{
+                View.INVISIBLE
             }
 
-            setEditableLabelStatus(annotation.isEditable)
+            setEditButtonVisibility(annotation.userCanEditLabel)
             setCheckedStatus(annotation.isSelected)
         }
 
-        private fun setEditableLabelStatus(isEditable:Boolean){
+        private fun setEditButtonVisibility(isEditable:Boolean){
             if(isEditable){
                 tagEditLabel.visibility = View.VISIBLE
             }else{
