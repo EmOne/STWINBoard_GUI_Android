@@ -1,5 +1,6 @@
 package logger
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -7,8 +8,9 @@ import com.st.BlueSTSDK.Feature
 import com.st.BlueSTSDK.Features.FeatureHSDatalogConfig
 import com.st.BlueSTSDK.HSDatalog.TagHW
 import com.st.BlueSTSDK.Node
+import com.st.clab.stwin.gui.R
 
-class HSDTaggingViewModel :ViewModel(){
+internal class HSDTaggingViewModel :ViewModel(){
 
     private val tagListener = Feature.FeatureListener { f, sample ->
         val tags = FeatureHSDatalogConfig.getDeviceTags(sample)
@@ -17,9 +19,9 @@ class HSDTaggingViewModel :ViewModel(){
         val isLogging = FeatureHSDatalogConfig.isLogging(sample)
         val annotations = tags.map {
             val uiAnnotation = if (it is TagHW) {
-                HSDAnnotation(it.id, it.label, it.pinDesc, HSDAnnotation.TagType.HW)
+                AnnotationViewData(it.id, it.label, it.pinDesc, R.string.annotationView_hwType,it.isEnabled,!isLogging,true)
             } else {
-                HSDAnnotation(it.id, it.label, null, HSDAnnotation.TagType.SW)
+                AnnotationViewData(it.id, it.label, null, R.string.annotationView_swType,it.isEnabled,false,false)
             }
             uiAnnotation
         }
@@ -30,8 +32,8 @@ class HSDTaggingViewModel :ViewModel(){
 
     private var mConfigFeature: FeatureHSDatalogConfig? = null
 
-    private val _annotation = MutableLiveData<List<HSDAnnotation>>(emptyList())
-    val annotations:LiveData<List<HSDAnnotation>>
+    private val _annotation = MutableLiveData<List<AnnotationViewData>>(emptyList())
+    val annotations:LiveData<List<AnnotationViewData>>
         get() = _annotation
 
     private val _isEditing = MutableLiveData<Boolean>(false)
@@ -62,15 +64,14 @@ class HSDTaggingViewModel :ViewModel(){
         _isEditing.postValue(!_isEditing.value!!)
     }
 
-    fun removeAnnotation(annotation: HSDAnnotation) {
+    fun removeAnnotation(annotation: AnnotationViewData) {
         val newList = _annotation.value?.filterNot { it.id==annotation.id }
         newList?.let { _annotation.postValue(it) }
     }
 
     fun addNewTag() {
-
         val newId = _annotation.value?.maxBy { it.id }?.id?.inc() ?: 0
-        val newTag = HSDAnnotation(newId,"Tag $newId",null,HSDAnnotation.TagType.SW,false,true)
+        val newTag = AnnotationViewData(newId,"Tag $newId",null,R.string.annotationView_swType,false,true)
         val newList = mutableListOf(newTag).apply {
             val oldList = _annotation.value
             if(oldList!=null) {
@@ -80,5 +81,17 @@ class HSDTaggingViewModel :ViewModel(){
         _annotation.postValue(newList)
     }
 
+    fun changeTagLabel(selected: AnnotationViewData, label: String) {
+        Log.d("TagViewMode","change to: $label")
+    }
+
+
+    fun selectAnnotation(selected: AnnotationViewData) {
+        Log.d("TagViewMode","select to: ${selected.label}")
+    }
+
+    fun deSelectAnnotation(selected: AnnotationViewData) {
+        Log.d("TagViewMode","deSelect to: ${selected.label}")
+    }
 
 }

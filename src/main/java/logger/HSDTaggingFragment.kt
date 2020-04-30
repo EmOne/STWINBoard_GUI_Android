@@ -2,7 +2,6 @@ package logger
 
 import android.app.Activity
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,13 +14,11 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
-import com.st.BlueSTSDK.Features.FeatureHSDatalogConfig
-import com.st.BlueSTSDK.HSDatalog.Device
 import com.st.BlueSTSDK.Manager
 import com.st.BlueSTSDK.Node
 import com.st.STWINBoard_Gui.Control.DeviceManager
 import com.st.clab.stwin.gui.R
-import logger.HSDAnnotationListAdapter.HSDAnnotationInteractionCallback
+import logger.HSDAnnotationListAdapter.*
 
 /**
  *
@@ -29,12 +26,27 @@ import logger.HSDAnnotationListAdapter.HSDAnnotationInteractionCallback
 class HSDTaggingFragment : Fragment() {
 
     private val viewModel by viewModels<HSDTaggingViewModel> ()
-    private val mAdapter: HSDAnnotationListAdapter = HSDAnnotationListAdapter()
+
     private lateinit var mAnnotationListView: RecyclerView
     private lateinit var mAcquisitionName:EditText
     private lateinit var mAcquisitionDesc:EditText
     private lateinit var mStartStopButton:Button
     private lateinit var mAddTagButton:Button
+
+    private val mAdapter: HSDAnnotationListAdapter = HSDAnnotationListAdapter(object : AnnotationInteractionCallback {
+        override fun onLabelChanged(annotation: AnnotationViewData, label: String) {
+            viewModel.changeTagLabel(annotation,label)
+        }
+
+        override fun onAnnotationSelected(selected: AnnotationViewData) {
+            viewModel.selectAnnotation(selected)
+        }
+
+        override fun onAnnotationDeselected(deselected: AnnotationViewData) {
+            viewModel.deSelectAnnotation(deselected)
+        }
+
+    })
 
     var mDeviceManager: DeviceManager? = null
 
@@ -73,64 +85,6 @@ class HSDTaggingFragment : Fragment() {
             viewModel.disableNotification(node)
         }
     }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        requireActivity().window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
-        var device = Device()
-        var hsdFeature: FeatureHSDatalogConfig? = null
-        var isLogging = false
-        mAdapter.setOnAnnotationInteractionCallback(object : HSDAnnotationInteractionCallback {
-            override fun onLabelChanged(selected: HSDAnnotation, label: String) {
-                removeAcqTextFocus()
-                val isSW = selected.tagType == HSDAnnotation.TagType.SW
-                val jsonConfigTagMessage = mDeviceManager!!.createConfigTagCommand(
-                        selected.id,
-                        isSW,
-                        label
-                )
-                mDeviceManager!!.encapsulateAndSend(jsonConfigTagMessage)
-                mDeviceManager!!.setTagLabel(selected.id, isSW, selected.label)
-                //Log.e("HSDTaggingFragment","onLabelChanged");
-            }
-
-            override fun onLabelInChanging(annotation: HSDAnnotation, label: String) {
-                removeAcqTextFocus()
-            }
-
-            override fun onAnnotationSelected(selected: HSDAnnotation) {
-                removeAcqTextFocus()
-                val isSW = selected.tagType == HSDAnnotation.TagType.SW
-                val jsonEnableTagMessage = mDeviceManager!!.createSetTagCommand(
-                        selected.id,
-                        isSW,
-                        true
-                )
-                mDeviceManager!!.encapsulateAndSend(jsonEnableTagMessage)
-                mDeviceManager!!.setTagEnabled(selected.id, isSW, true)
-                //Log.e("HSDTaggingFragment","onAnnotationSelected");
-            }
-
-            override fun onAnnotationDeselected(deselected: HSDAnnotation) {
-                removeAcqTextFocus()
-                val isSW = deselected.tagType == HSDAnnotation.TagType.SW
-                val jsonDisableTagMessage = mDeviceManager!!.createSetTagCommand(
-                        deselected.id,
-                        isSW,
-                        false
-                )
-                mDeviceManager!!.encapsulateAndSend(jsonDisableTagMessage)
-                mDeviceManager!!.setTagEnabled(deselected.id, isSW, true)
-                //Log.e("HSDTaggingFragment","onAnnotationDeselected");
-            }
-
-        })
-        mDeviceManager = DeviceManager()
-        mDeviceManager!!.setDevice(device)
-        mDeviceManager!!.setHSDFeature(hsdFeature)
-        mDeviceManager!!.setIsLogging(isLogging)
-    }
-
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_log_annotation, container, false)

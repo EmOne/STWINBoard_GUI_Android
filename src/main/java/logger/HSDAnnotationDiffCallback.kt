@@ -38,12 +38,12 @@ package logger
 
 import androidx.recyclerview.widget.DiffUtil
 
-internal class HSDAnnotationDiffCallback : DiffUtil.ItemCallback<HSDAnnotation>() {
-    override fun areItemsTheSame(oldItem: HSDAnnotation, newItem: HSDAnnotation): Boolean {
+internal class HSDAnnotationDiffCallback : DiffUtil.ItemCallback<AnnotationViewData>() {
+    override fun areItemsTheSame(oldItem: AnnotationViewData, newItem: AnnotationViewData): Boolean {
         return oldItem.id == newItem.id
     }
 
-    override fun areContentsTheSame(oldItem: HSDAnnotation, newItem: HSDAnnotation): Boolean {
+    override fun areContentsTheSame(oldItem: AnnotationViewData, newItem: AnnotationViewData): Boolean {
         return oldItem == newItem
     }
 }
