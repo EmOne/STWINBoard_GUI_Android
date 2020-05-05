@@ -48,7 +48,6 @@ dependencies {
     implementation group: 'androidx.cardview', name: 'cardview', version: "$rootProject.androidx_cardViewVersion"
     implementation group: 'androidx.constraintlayout', name: 'constraintlayout', version: "$rootProject.androidx_constraintLayoutVersion"
     implementation group: 'com.google.android.material', name: 'material', version: "$rootProject.androidx_materialVersion"
-
-    //implementation 'androidx.coordinatorlayout:coordinatorlayout:1.1.0'
+    implementation group: 'androidx.localbroadcastmanager', name: 'localbroadcastmanager', version: "$rootProject.androidx_localBroadcastVersion"
 
 }
