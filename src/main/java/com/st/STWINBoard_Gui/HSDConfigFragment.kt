@@ -465,7 +465,7 @@ open class HSDConfigFragment : Fragment() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        menu.findItem(R.id.startLog).isVisible = false
+        //menu.findItem(R.id.startLog).isVisible = false
         inflater.inflate(R.menu.menu_stwin_hs_datalog, menu)
         stopMenuItem = menu.findItem(R.id.menu_stopSTWIN_HS_Datalog)
         startMenuItem = menu.findItem(R.id.menu_startSTWIN_HS_Datalog)
