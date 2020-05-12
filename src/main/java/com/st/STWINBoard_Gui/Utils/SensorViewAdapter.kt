@@ -61,18 +61,13 @@ class SensorViewAdapter(//Activity Context
         holder.mSensor = s
         holder.mSensorName.text = s.name
         holder.mSensorId.text = s.id.toString()
-        /*val sensorParamsAdapter = DescriptorParamViewAdapter(
-                s.sensorDescriptor,
-                s.sensorStatus){ descriptorParam, newValue ->
-            mSensorEditTextListener.onEditTextValueChanged(s.id,descriptorParam.name,newValue)
-        }
-        holder.mSensorParamListView.adapter = sensorParamsAdapter
+
         val subSensorParamsAdapter = SubSensorViewAdapter(
                 s,
                 mSubSensorIconClickedListener,
                 mSubSensorEditTextChangedListener)
 
-        holder.mSubSensorListView.adapter = subSensorParamsAdapter*/
+        holder.mSubSensorListView.adapter = subSensorParamsAdapter
         manageSensorStatus(s, holder.mSensorName, holder.mSensorCardMask)
         //subSensorParamsAdapter.notifyDataSetChanged();
         //sensorParamsAdapter.notifyDataSetChanged();

@@ -61,6 +61,26 @@
             app:layout_constraintStart_toStartOf="@+id/subSensor_name"
             app:layout_constraintTop_toBottomOf="@+id/subSensor_name" />
 
+        <Spinner
+            android:id="@+id/subSensor_odrSelector"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            app:layout_constraintEnd_toEndOf="@+id/subSensor_enable"
+            app:layout_constraintStart_toStartOf="@+id/textView3"
+            app:layout_constraintTop_toBottomOf="@+id/textView3" />
+
+        <Spinner
+            android:id="@+id/subSensor_fsSelector"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toEndOf="@+id/subSensor_odrSelector"
+            app:layout_constraintStart_toStartOf="@+id/subSensor_odrSelector"
+            app:layout_constraintTop_toBottomOf="@+id/textView6" />
+
         <Switch
             android:id="@+id/subSensor_enable"
             android:layout_width="wrap_content"
@@ -76,24 +96,55 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            tools:text="ACCELEROMETER"
             app:layout_constraintBaseline_toBaselineOf="@+id/subSensor_enable"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintStart_toStartOf="parent"
+            tools:text="ACCELEROMETER" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/subSensor_paramsList"
+        <TextView
+            android:id="@+id/textView6"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="TextView"
+            app:layout_constraintStart_toStartOf="@+id/textView3"
+            app:layout_constraintTop_toBottomOf="@+id/subSensor_odrSelector" />
+
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="ODR"
+            app:layout_constraintStart_toEndOf="@+id/subSensor_icon"
+            app:layout_constraintTop_toTopOf="@+id/subSensor_icon" />
+
+        <TextView
+            android:id="@+id/subSensor_fsUnit"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"
+            android:text="TextView"
+            app:layout_constraintBaseline_toBaselineOf="@+id/textView6"
+            app:layout_constraintEnd_toEndOf="@+id/subSensor_fsSelector"
+            app:layout_constraintStart_toEndOf="@+id/textView6" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/subSensor_sampleLayout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"
-            app:layoutManager="LinearLayoutManager"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/subSensor_icon"
-            app:layout_constraintTop_toTopOf="@+id/subSensor_icon"
-            tools:listitem="@layout/item_param_editable"
-            tools:itemCount="2" />
+            app:layout_constraintEnd_toEndOf="@+id/subSensor_fsSelector"
+            app:layout_constraintStart_toStartOf="@+id/textView6"
+            app:layout_constraintTop_toBottomOf="@+id/subSensor_fsSelector">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/subSensor_sampleValue"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="hint" />
+        </com.google.android.material.textfield.TextInputLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
