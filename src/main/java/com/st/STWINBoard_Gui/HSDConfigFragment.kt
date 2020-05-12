@@ -41,6 +41,7 @@ import android.app.AlertDialog
 import android.app.Dialog
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.res.Resources
 import android.net.Uri
 import android.os.AsyncTask
@@ -56,6 +57,7 @@ import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.st.BlueSTSDK.Feature
@@ -465,10 +467,7 @@ open class HSDConfigFragment : Fragment() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        menu.findItem(R.id.startLog).isVisible = false
-        inflater.inflate(R.menu.menu_stwin_hs_datalog, menu)
-        stopMenuItem = menu.findItem(R.id.menu_stopSTWIN_HS_Datalog)
-        startMenuItem = menu.findItem(R.id.menu_startSTWIN_HS_Datalog)
+        //menu.findItem(R.id.startLog).isVisible = false
         startMenuItem?.getActionView()?.setOnClickListener { view: View? ->
             startMenuItem?.setVisible(false)
             stopMenuItem?.setVisible(true)
@@ -540,6 +539,7 @@ open class HSDConfigFragment : Fragment() {
         }
         saveButton.setOnClickListener { view: View? ->
             dialog.dismiss()
+            //todo THE CONFIG IS NOT SEND IF THE LOCAL SWICH IS ON
             if (localSwitch.isChecked) {
                 val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
                     addCategory(Intent.CATEGORY_OPENABLE)
@@ -550,12 +550,18 @@ open class HSDConfigFragment : Fragment() {
             }
             if (boardSwitch.isChecked) {
                 //TODO send save config on board command (ToBeDefined)
+                sendConfigCompleteEvent()
                 Log.e("STWINConfigFragment", "Save Config on the board!")
             }
         }
         val closeButton = dialog.findViewById<Button>(R.id.hsd_close_button)
         closeButton.setOnClickListener { v: View? -> dialog.dismiss() }
         dialog.show()
+    }
+
+    private fun sendConfigCompleteEvent(newConfig:String?=null){
+        LocalBroadcastManager.getInstance(requireContext())
+            .sendBroadcast(buildConfigCompletedEvent(newConfig))
     }
 
     companion object {
@@ -576,21 +582,29 @@ open class HSDConfigFragment : Fragment() {
         }
 
         private const val CREATE_FILE_REQUEST_CODE = 1
-        @JvmStatic
-        fun getPxfromDp(res: Resources, yourdp: Int): Int {
-            return TypedValue.applyDimension(
-                    TypedValue.COMPLEX_UNIT_DIP,
-                    yourdp.toFloat(),
-                    res.displayMetrics
-            ).toInt()
+
+        private val ACTION_CONFIG_COMPLETE = HSDConfigFragment::class.java.name + ".ACTION_CONFIG_COMPLETE"
+        private val ACTION_CONFIG_EXTRA = HSDConfigFragment::class.java.name + ".ACTION_CONFIG_EXTRA"
+        fun buildConfigCompleteIntentFilter(): IntentFilter {
+            return IntentFilter().apply {
+                addAction(ACTION_CONFIG_COMPLETE)
+            }
         }
 
-        @JvmStatic
-        fun setEditTextMaxLength(editText: EditText, length: Int) {
-            val FilterArray = arrayOfNulls<InputFilter>(1)
-            FilterArray[0] = LengthFilter(length)
-            editText.filters = FilterArray
+        fun extractSavedConfig(intent: Intent?):String?{
+            if(intent?.action == ACTION_CONFIG_COMPLETE){
+                intent.getStringExtra(ACTION_CONFIG_EXTRA)
+            }
+            return null
         }
+
+        private fun buildConfigCompletedEvent(newConfig: String?):Intent{
+            return Intent(ACTION_CONFIG_COMPLETE).apply {
+                if(newConfig!=null)
+                    putExtra(ACTION_CONFIG_EXTRA, newConfig)
+            }
+        }
+
     }
 
     private val HSDConfigViewModel.Error.toStringRes:Int
@@ -601,5 +615,6 @@ open class HSDConfigFragment : Fragment() {
             HSDConfigViewModel.Error.ImpossibleWriteFile -> R.string.hsdl_error_writeError
             HSDConfigViewModel.Error.ImpossibleCreateFile -> R.string.hsdl_error_createError
         }
+
 }
 

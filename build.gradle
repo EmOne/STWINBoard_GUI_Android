@@ -40,15 +40,14 @@ android {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation project(path: ':BlueSTSDK')
-    //implementation project(path: ':BlueSTSDK_Gui')
-    implementation project(path: ':BlueSTSDK_Gui_Android')
+    implementation project(path: ':BlueSTSDK_Gui')
+    //implementation project(path: ':BlueSTSDK_Gui_Android')
 
     implementation group: 'androidx.recyclerview', name:'recyclerview', version:"$rootProject.androidx_recycleViewVersion"
     implementation group: 'androidx.fragment', name: 'fragment-ktx', version: "$rootProject.androidx_fragmentVersion"
     implementation group: 'androidx.cardview', name: 'cardview', version: "$rootProject.androidx_cardViewVersion"
     implementation group: 'androidx.constraintlayout', name: 'constraintlayout', version: "$rootProject.androidx_constraintLayoutVersion"
     implementation group: 'com.google.android.material', name: 'material', version: "$rootProject.androidx_materialVersion"
-
-    //implementation 'androidx.coordinatorlayout:coordinatorlayout:1.1.0'
+    implementation group: 'androidx.localbroadcastmanager', name: 'localbroadcastmanager', version: "$rootProject.androidx_localBroadcastVersion"
 
 }

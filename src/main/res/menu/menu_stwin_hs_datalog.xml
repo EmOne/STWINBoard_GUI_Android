@@ -38,18 +38,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/menu_startSTWIN_HS_Datalog"
-        android:title="@string/hsd_start_log"
-        android:icon="@drawable/ic_play"
-        app:actionLayout="@layout/menu_start_stwin_hs_log_item"
-        android:showAsAction="always" />
-    <item
-        android:id="@+id/menu_stopSTWIN_HS_Datalog"
-        android:title="@string/hsd_stop_log"
-        android:icon="@drawable/ic_stop"
-        app:actionLayout="@layout/menu_stop_stwin_hs_log_item"
-        android:showAsAction="always" />
-    <item
         android:id="@+id/menu_hsdl_wifiConf"
         android:title="@string/hsd_wi_fi_configuration"
         android:showAsAction="never" />
