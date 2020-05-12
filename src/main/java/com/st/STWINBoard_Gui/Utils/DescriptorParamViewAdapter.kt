@@ -1,6 +1,6 @@
 package com.st.STWINBoard_Gui.Utils
-
-import com.st.BlueSTSDK.HSDatalog.StatusParam
+/*
+import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.StatusParam
 
 import android.text.InputType
 import android.view.*
@@ -10,7 +10,7 @@ import android.widget.AdapterView.OnItemSelectedListener
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-import com.st.BlueSTSDK.HSDatalog.DescriptorParam
+import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DescriptorParam
 import com.st.clab.stwin.gui.R
 
 class DescriptorParamViewAdapter(
@@ -156,3 +156,4 @@ class DescriptorParamViewAdapter(
         private const val EDITABLE_PARAM = 1
     }
 }
+*/

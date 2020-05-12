@@ -7,12 +7,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.recyclerview.widget.RecyclerView
-import com.st.BlueSTSDK.HSDatalog.Sensor
-import com.st.BlueSTSDK.HSDatalog.SubSensorDescriptor
-import com.st.BlueSTSDK.HSDatalog.SubSensorStatus
+import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.Sensor
+import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.SubSensorDescriptor
+import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.SubSensorStatus
 import com.st.STWINBoard_Gui.Utils.SensorViewAdapter.*
 import com.st.clab.stwin.gui.R
-
+/*
 class SubSensorViewAdapter(
         sensor: Sensor,
         private val subSensorIconClickedListener: OnSubSensorIconClickedListener?,
@@ -88,8 +88,8 @@ class SubSensorViewAdapter(
             setSensorData(subSensor.sensorType)
 
             mSubSensorListView.adapter = DescriptorParamViewAdapter(
-                    subSensor.subDescriptorParams,
-                    subSensorStatus.params){ descriptorParam, newValue ->
+                    subSensor,
+                    subSensorStatus){ descriptorParam, newValue ->
                     subSensorEditTextListener.onSubSensorEditTextValueChanged(sID,subSensor.id,descriptorParam.name,newValue)
             }
 
@@ -143,3 +143,5 @@ class SubSensorViewAdapter(
 
 
 }
+
+ */

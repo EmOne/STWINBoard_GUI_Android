@@ -42,14 +42,10 @@ import android.app.Dialog
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.res.Resources
 import android.net.Uri
 import android.os.AsyncTask
 import android.os.Bundle
-import android.text.InputFilter
-import android.text.InputFilter.LengthFilter
 import android.util.Log
-import android.util.TypedValue
 import android.view.*
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
@@ -62,10 +58,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.st.BlueSTSDK.Feature
 import com.st.BlueSTSDK.Feature.FeatureListener
-import com.st.BlueSTSDK.Features.FeatureHSDatalogConfig
+import com.st.BlueSTSDK.Features.highSpeedDataLog.FeatureHSDataLogConfig
 import com.st.BlueSTSDK.Manager
 import com.st.BlueSTSDK.Node
-import com.st.STWINBoard_Gui.Control.DeviceManager
+import com.st.STWINBoard_Gui.Control.DeviceManagerInterface
 import com.st.STWINBoard_Gui.Utils.SensorViewAdapter
 import com.st.STWINBoard_Gui.Utils.SensorViewAdapter.*
 import com.st.clab.stwin.gui.R
@@ -77,7 +73,7 @@ import java.io.*
  *
  */
 open class HSDConfigFragment : Fragment() {
-    private var deviceManager: DeviceManager? = null
+    private var deviceManager: DeviceManagerInterface? = null
     private var recyclerView: RecyclerView? = null
     private var mSensorsAdapter: SensorViewAdapter? = null
     private var mTaggingMaskView: LinearLayout? = null
@@ -86,8 +82,7 @@ open class HSDConfigFragment : Fragment() {
     private var mDataTransferAnimation: Animation? = null
     var stopMenuItem: MenuItem? = null
     var startMenuItem: MenuItem? = null
-    var mLoadConfTask: LoadConfTask? = null
-    private var mSTWINConf: FeatureHSDatalogConfig? = null
+    private var mSTWINConf: FeatureHSDataLogConfig? = null
 
     private val viewModel by viewModels<HSDConfigViewModel>()
 
@@ -96,50 +91,45 @@ open class HSDConfigFragment : Fragment() {
      *
      */
     private val mSTWINConfListener = FeatureListener { f: Feature, sample: Feature.Sample? ->
-        val command = (f as FeatureHSDatalogConfig).getCommand(sample)
-        //Log.e("STWINConfigFragment","command: " + command);
-        var jsonObj: JSONObject? = null
-        try {
-            jsonObj = JSONObject(command)
-            val keys = jsonObj.keys()
-            val firstKey = keys.next()
-            when (firstKey) {
-                "device" -> {
-                    mLoadConfTask = LoadConfTask()
-                    mLoadConfTask!!.execute(jsonObj)
-                }
-                "deviceInfo" -> {
-                }
-                "id" -> {
-                }
-                "register" -> {
-                }
-                "command" -> when (jsonObj.getString(firstKey)) {
-                    "STATUS" -> {
-                        val type = jsonObj.getString("type")
-                        if (type != "performance") Log.e("TEST", "type: $type")
-                        when (type) {
-                            "logstatus" -> {
-                                val isLogging = jsonObj.getBoolean("isLogging")
-                                deviceManager!!.setIsLogging(isLogging)
-                                //NOTE - check this
-                                //updateGui(() -> {
-                                startMenuItem!!.isVisible = !isLogging
-                                stopMenuItem!!.isVisible = isLogging
-                                if (isLogging) {
-                                    //TODO remove this animation
-                                    obscureConfig(mMaskView, dataImageView)
-                                    //TODO get tagList
-                                    //TODO get device and set tagList
-                                    //TODO call openTaggingFragment();
-                                } else unobscureConfig(mMaskView, dataImageView)
-                            }
+        if(sample == null)
+            return@FeatureListener
+
+        val deviceConf = FeatureHSDataLogConfig.getDeviceConfig(sample) ?: return@FeatureListener
+        val sensors = deviceConf.sensors ?: return@FeatureListener
+        activity?.runOnUiThread{
+            mSensorsAdapter = SensorViewAdapter(
+                    sensors,
+                    object : OnSensorSwitchClickedListener{
+                        override fun onSensorSwitchClicked(sensorId: Int) {
+                            Log.d(TAG,"onSensorSwitchClicked $sensorId")
+                            manageSensorSwitchClicked(sensorId)
+                        }
+                    } ,
+                    object : OnSensorEditTextChangedListener {
+                        override fun onEditTextValueChanged(sensorId: Int, paramName: String, value: String) {
+                            Log.d(TAG,"onEditTextValueChanged $sensorId -> $paramName:$value")
+                            manageSensorEditTextChanged(sensorId, paramName, value)
+                        }
+                    },
+                    object : OnSubSensorIconClickedListener {
+                        override fun onSubSensorChangeActivationStatus(sensorId: Int, subSensorId: Int, newState:Boolean) {
+                            Log.d(TAG,"onSubSensorIconClicked $sensorId - $subSensorId enable:$newState")
+                            manageSubSensorIconClicked(sensorId, subSensorId)
+                        }
+                    },
+                    object : OnSubSensorEditTextChangedListener {
+                        override fun onSubSensorEditTextValueChanged(sensorId: Int, subSensorId: Int?, paramName: String, value: String) {
+                            Log.d(TAG,"onSubSensorEditTextValueChanged $sensorId - $subSensorId $paramName:$value")
+                            manageSubSensorEditTextChanged(sensorId, subSensorId!!, paramName, value)
                         }
                     }
-                }
-            }
-        } catch (e: JSONException) {
-            e.printStackTrace()
+            )
+            // Set the adapter
+            recyclerView!!.adapter = mSensorsAdapter
+
+            //NOTE - check this
+            //updateGui(() -> {
+            mSensorsAdapter!!.notifyDataSetChanged()
         }
     }
 
@@ -164,31 +154,31 @@ open class HSDConfigFragment : Fragment() {
     }
 
     private fun manageSensorSwitchClicked(sensorId: Int) {
-        deviceManager!!.updateSensorIsActiveModel(sensorId)
+        //deviceManager!!.updateSensorIsActiveModel(sensorId)
         val jsonSetMessage = deviceManager!!.createSetSensorIsActiveCommand(sensorId)
         deviceManager!!.encapsulateAndSend(jsonSetMessage)
     }
 
     private fun manageSubSensorIconClicked(sensorId: Int, subSensorId: Int) {
-        if (deviceManager!!.deviceModel.getSensor(sensorId)!!.sensorStatus.isActive) {
-            deviceManager!!.updateSubSensorIsActiveModel(sensorId, subSensorId)
-            val jsonSetMessage = deviceManager!!.createSetSubSensorIsActiveCommand(sensorId, subSensorId)
-            deviceManager!!.encapsulateAndSend(jsonSetMessage)
-        }
+//        if (deviceManager!!.deviceModel.getSensor(sensorId)!!.sensorStatus.isActive) {
+//            deviceManager!!.updateSubSensorIsActiveModel(sensorId, subSensorId)
+//            val jsonSetMessage = deviceManager!!.createSetSubSensorIsActiveCommand(sensorId, subSensorId)
+//            deviceManager!!.encapsulateAndSend(jsonSetMessage)
+//        }
     }
 
     private fun manageSensorEditTextChanged(sensorId: Int, paramName: String, value: String) {
-        if (deviceManager!!.getSensorStatusParam(sensorId, paramName) != value) {
-            val jsonSetMessage = deviceManager!!.createSetSensorStatusParamCommand(sensorId, paramName, value)
-            deviceManager!!.encapsulateAndSend(jsonSetMessage)
-        }
+//        if (deviceManager!!.getSensorStatusParam(sensorId, paramName) != value) {
+//            val jsonSetMessage = deviceManager!!.createSetSensorStatusParamCommand(sensorId, paramName, value)
+//            deviceManager!!.encapsulateAndSend(jsonSetMessage)
+//        }
     }
 
     private fun manageSubSensorEditTextChanged(sensorId: Int, subSensorId: Int, paramName: String, value: String) {
-        if (deviceManager!!.getSubSensorStatusParam(sensorId, subSensorId, paramName) != value) {
-            val jsonSetMessage = deviceManager!!.createSetSubSensorStatusParamCommand(sensorId, subSensorId, paramName, value)
-            deviceManager!!.encapsulateAndSend(jsonSetMessage)
-        }
+//        if (deviceManager!!.getSubSensorStatusParam(sensorId, subSensorId, paramName) != value) {
+//            val jsonSetMessage = deviceManager!!.createSetSubSensorStatusParamCommand(sensorId, subSensorId, paramName, value)
+//            deviceManager!!.encapsulateAndSend(jsonSetMessage)
+//        }
     }
 
     //NOTE /////////////////////////////////////////////////////////////////////////////////////////////
@@ -204,7 +194,7 @@ open class HSDConfigFragment : Fragment() {
         }
         return sb.toString()
     }
-
+/*
     inner class LoadJSONTask : AsyncTask<Uri, Void?, JSONObject?>() {
         override fun doInBackground(vararg uris: Uri): JSONObject? {
             val jsonUri = uris[0]
@@ -231,7 +221,7 @@ open class HSDConfigFragment : Fragment() {
         }
     }
 
-    inner class SendConfTask : AsyncTask<DeviceManager, Void, DeviceManager>() {
+    inner class SendConfTask : AsyncTask<DeviceManagerInterface, Void, DeviceManagerInterface>() {
         override fun doInBackground(vararg deviceManagers: DeviceManager): DeviceManager {
             return deviceManagers[0]
         }
@@ -328,7 +318,7 @@ open class HSDConfigFragment : Fragment() {
             super.onCancelled()
         }
     }
-
+*/
     private fun requestConfigurationFile() {
         val chooserFile = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_DEFAULT)
@@ -359,16 +349,16 @@ open class HSDConfigFragment : Fragment() {
     //NOTE /////////////////////////////////////////////////////////////////////////////////////////////
     override fun onResume() {
         super.onResume()
-        if (deviceManager != null && deviceManager!!.deviceModel != null) {
-            val loadConfTask = LoadConfTask()
-            loadConfTask.execute(deviceManager!!.jsoNfromDevice)
-        }
+//        if (deviceManager != null && deviceManager!!.deviceModel != null) {
+//            val loadConfTask = LoadConfTask()
+//            loadConfTask.execute(deviceManager!!.jsoNfromDevice)
+//        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
-        deviceManager = DeviceManager()
+        //deviceManager = DeviceManager()
     }
 
     private fun obscureConfig(maskLayout: View?, animImage: ImageView?) {
@@ -447,15 +437,13 @@ open class HSDConfigFragment : Fragment() {
 
      fun enableNeededNotification(node: Node) {
          mNode = node;
-        mSTWINConf = node.getFeature(FeatureHSDatalogConfig::class.java)
+        mSTWINConf = node.getFeature(FeatureHSDataLogConfig::class.java)
         //NOTE new STWINConf char
         mSTWINConf?.apply {
             addFeatureListener(mSTWINConfListener)
             enableNotification()
             Log.e("TEST", "notifEnabled")
-            deviceManager!!.setHSDFeature(this)
-            val jsonGetDeviceMessage = deviceManager!!.createGetDeviceCommand()
-            deviceManager!!.encapsulateAndSend(jsonGetDeviceMessage)
+            sendGETDevice()
         }
     }
 
@@ -473,14 +461,14 @@ open class HSDConfigFragment : Fragment() {
             stopMenuItem?.setVisible(true)
             val jsonStartMessage = deviceManager!!.createStartCommand()
             deviceManager!!.encapsulateAndSend(jsonStartMessage)
-            deviceManager!!.setIsLogging(true)
+          //  deviceManager!!.setIsLogging(true)
             obscureConfig(mTaggingMaskView, null)
             Log.e("STWINConfigFragment", "START TAG PRESSED!!!!")
         }
         stopMenuItem?.getActionView()?.setOnClickListener { view: View? ->
             startMenuItem?.setVisible(true)
             stopMenuItem?.setVisible(false)
-            deviceManager!!.setIsLogging(false)
+            //deviceManager!!.setIsLogging(false)
             unobscureConfig(mMaskView, dataImageView)
             val jsonStopMessage = deviceManager!!.createStopCommand()
             deviceManager!!.encapsulateAndSend(jsonStopMessage)

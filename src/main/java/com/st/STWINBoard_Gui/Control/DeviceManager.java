@@ -1,23 +1,11 @@
 package com.st.STWINBoard_Gui.Control;
-
+/*
 import android.os.AsyncTask;
 import android.util.Log;
 
 import com.st.BlueSTSDK.Feature;
-import com.st.BlueSTSDK.Features.FeatureHSDatalogConfig;
-import com.st.BlueSTSDK.HSDatalog.Device;
-import com.st.BlueSTSDK.HSDatalog.DescriptorParam;
-import com.st.BlueSTSDK.HSDatalog.DeviceInfo;
-import com.st.BlueSTSDK.HSDatalog.DeviceInfoKt;
-import com.st.BlueSTSDK.HSDatalog.DeviceStats;
-import com.st.BlueSTSDK.HSDatalog.Sensor;
-import com.st.BlueSTSDK.HSDatalog.SensorDescriptor;
-import com.st.BlueSTSDK.HSDatalog.SensorStatus;
-import com.st.BlueSTSDK.HSDatalog.StatusParam;
-import com.st.BlueSTSDK.HSDatalog.SubSensorDescriptor;
-import com.st.BlueSTSDK.HSDatalog.SubSensorStatus;
-import com.st.BlueSTSDK.HSDatalog.Tag;
-import com.st.BlueSTSDK.HSDatalog.TagKt;
+import com.st.BlueSTSDK.Features.highSpeedDataLog.FeatureHSDataLogConfig;
+import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceStats;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -44,7 +32,7 @@ public class DeviceManager implements DeviceManagerInterface {
 
     private ByteArrayOutputStream currentMessage;
 
-    /** Transport Protocol */
+
     private static final int MTU_SIZE = 20;
     private static final byte TP_START_PACKET = ((byte) (0x00));
     private static final byte TP_START_END_PACKET = ((byte) (0x20));
@@ -585,7 +573,6 @@ public class DeviceManager implements DeviceManagerInterface {
             {
                 case TP_START_PACKET:
                 {
-                    /*First part of a packet*/
                     baos.write(head);
                     baos.write(byteCommand,0,mtuSize-1);
                     head = TP_MIDDLE_PACKET;
@@ -593,7 +580,6 @@ public class DeviceManager implements DeviceManagerInterface {
                 break;
                 case TP_START_END_PACKET:
                 {
-                    /*First and last part of a packet*/
                     baos.write(head);
                     baos.write(byteCommand,0,codedDataLength);
                     head = TP_START_PACKET;
@@ -601,21 +587,18 @@ public class DeviceManager implements DeviceManagerInterface {
                 break;
                 case TP_MIDDLE_PACKET:
                 {
-                    /*Central part of a packet*/
                     baos.write(head);
                     baos.write(byteCommand,cnt,mtuSize-1);
                 }
                 break;
                 case TP_END_PACKET:
                 {
-                    /*Last part of a packet*/
                     baos.write(head);
                     baos.write(byteCommand,cnt,codedDataLength-cnt);
                     head = TP_START_PACKET;
                 }
                 break;
             }
-            /*length variables update*/
             cnt += size;
         }
         return baos.toByteArray();
@@ -1233,8 +1216,9 @@ public class DeviceManager implements DeviceManagerInterface {
         protected Void doInBackground(byte[]... bytesToSend)
         {
             byte[] data = bytesToSend[0];
-            ((FeatureHSDatalogConfig)mHSDFeature).sendWrite(data);
+            ((FeatureHSDataLogConfig)mHSDFeature).sendWrite(data);
             return null;
         }
     }
 }
+*/

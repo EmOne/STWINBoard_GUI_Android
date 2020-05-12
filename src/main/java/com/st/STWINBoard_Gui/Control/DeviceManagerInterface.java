@@ -1,7 +1,7 @@
 package com.st.STWINBoard_Gui.Control;
 
-import com.st.BlueSTSDK.HSDatalog.Device;
 import com.st.BlueSTSDK.Feature;
+import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.Device;
 
 import org.json.JSONException;
 import org.json.JSONObject;

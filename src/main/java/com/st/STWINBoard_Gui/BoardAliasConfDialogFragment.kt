@@ -7,7 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.TextView
 import androidx.fragment.app.DialogFragment
-import com.st.BlueSTSDK.Features.FeatureHSDatalogConfig
+import com.st.BlueSTSDK.Features.highSpeedDataLog.FeatureHSDataLogConfig
 import com.st.BlueSTSDK.Manager
 import com.st.BlueSTSDK.Node
 import com.st.clab.stwin.gui.R
@@ -57,7 +57,7 @@ internal class BoardAliasConfDialogFragment : DialogFragment(){
         }
 
     private fun setBoardAlias() {
-        val configFeature = node?.getFeature(FeatureHSDatalogConfig::class.java)
+        val configFeature = node?.getFeature(FeatureHSDataLogConfig::class.java)
         val name = mBoardName?.text ?: return
         configFeature?.setBoardAlias(name.toString())
     }

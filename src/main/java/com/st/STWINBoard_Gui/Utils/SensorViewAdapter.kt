@@ -8,7 +8,7 @@ import android.widget.Switch
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
-import com.st.BlueSTSDK.HSDatalog.Sensor
+import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.Sensor
 import com.st.clab.stwin.gui.R
 
 class SensorViewAdapter(//Activity Context
@@ -59,11 +59,11 @@ class SensorViewAdapter(//Activity Context
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val s = mSensorList[position]
         holder.mSensor = s
-        holder.mSensorName.text = s.sensorDescriptor.name
+        holder.mSensorName.text = s.name
         holder.mSensorId.text = s.id.toString()
-        val sensorParamsAdapter = DescriptorParamViewAdapter(
-                s.sensorDescriptor.descriptorParams,
-                s.sensorStatus.statusParams){ descriptorParam, newValue ->
+        /*val sensorParamsAdapter = DescriptorParamViewAdapter(
+                s.sensorDescriptor,
+                s.sensorStatus){ descriptorParam, newValue ->
             mSensorEditTextListener.onEditTextValueChanged(s.id,descriptorParam.name,newValue)
         }
         holder.mSensorParamListView.adapter = sensorParamsAdapter
@@ -71,7 +71,8 @@ class SensorViewAdapter(//Activity Context
                 s,
                 mSubSensorIconClickedListener,
                 mSubSensorEditTextChangedListener)
-        holder.mSubSensorListView.adapter = subSensorParamsAdapter
+
+        holder.mSubSensorListView.adapter = subSensorParamsAdapter*/
         manageSensorStatus(s, holder.mSensorName, holder.mSensorCardMask)
         //subSensorParamsAdapter.notifyDataSetChanged();
         //sensorParamsAdapter.notifyDataSetChanged();
@@ -82,7 +83,7 @@ class SensorViewAdapter(//Activity Context
     }
 
     private fun manageSensorStatus(sensor: Sensor?, sensorName: Switch, layoutMask: CardView) {
-        if (sensor!!.sensorStatus.isActive) {
+        if (true) {
             sensorName.isChecked = true
             layoutMask.isClickable = false
             layoutMask.visibility = View.INVISIBLE

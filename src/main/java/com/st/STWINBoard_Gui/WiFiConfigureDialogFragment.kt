@@ -8,8 +8,8 @@ import android.view.View
 import android.widget.CompoundButton
 import android.widget.TextView
 import androidx.fragment.app.DialogFragment
-import com.st.BlueSTSDK.Features.FeatureHSDatalogConfig
-import com.st.BlueSTSDK.HSDatalog.WifSettings
+import com.st.BlueSTSDK.Features.highSpeedDataLog.FeatureHSDataLogConfig
+import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.WifSettings
 import com.st.BlueSTSDK.Manager
 import com.st.BlueSTSDK.Node
 import com.st.clab.stwin.gui.R
@@ -64,7 +64,7 @@ internal class WiFiConfigureDialogFragment : DialogFragment(){
     }
 
     private fun sendWifiSetting() {
-        val configFeature = node?.getFeature(FeatureHSDatalogConfig::class.java)
+        val configFeature = node?.getFeature(FeatureHSDataLogConfig::class.java)
         val settings = WifSettings(
                 enable = mEnableWifi?.isChecked ?: false,
                 ssid = mSSIDText?.text,
