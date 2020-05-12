@@ -1,4 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="subSensor_enable">Enable</string>
+    <string name="subSensor_sampleErrorFromat">value must be in the range [%d…%d]</string>
+
+    <string name="subSensor_type_acc">Accelerometer</string>
+    <string name="subSensor_type_mag">Magnetometer</string>
+    <string name="subSensor_type_gyro">Gyroscope</string>
+    <string name="subSensor_type_temp">Temperature</string>
+    <string name="subSensor_type_hum">Humidity</string>
+    <string name="subSensor_type_press">Pressure</string>
+    <string name="subSensor_type_mic">Microphone</string>
+    <string name="subSensor_type_unknown">Unknown</string>
 </resources>

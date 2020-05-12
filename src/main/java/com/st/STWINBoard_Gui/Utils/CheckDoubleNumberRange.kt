@@ -10,22 +10,22 @@ import com.st.BlueSTSDK.gui.util.InputChecker.InputChecker
 * @param errorMessageId error to display if the user input is wrong
 * @param min min accepted value
 * @param max max accepted value */
-class CheckDoubleNumberRange (textInputLayout: TextInputLayout?, @StringRes errorMessageId: Int,
-    min: Double?,
-    max: Double?) : InputChecker(textInputLayout, errorMessageId) {
+class CheckIntNumberRange (textInputLayout: TextInputLayout, errorMessage:String,
+    min: Int?,
+    max: Int?) : InputChecker(textInputLayout, errorMessage) {
 
-    private val validRange:ClosedRange<Double>
+    private val validRange:ClosedRange<Int>
 
     init {
-        val minValue = min ?: Double.NEGATIVE_INFINITY
-        val maxValue = max ?: Double.POSITIVE_INFINITY
+        val minValue = min ?: Int.MIN_VALUE
+        val maxValue = max ?: Int.MAX_VALUE
         validRange = minValue..maxValue
     }
 
 
     override fun validate(input: String): Boolean {
         return try {
-            val value = input.toDouble()
+            val value = input.toInt()
             validRange.contains(value)
         } catch (e: java.lang.NumberFormatException) {
             false

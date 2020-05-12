@@ -10,9 +10,7 @@ import android.widget.*
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.Sensor
-import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.SubSensorDescriptor
-import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.SubSensorStatus
+import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.*
 import com.st.STWINBoard_Gui.Utils.SensorViewAdapter.*
 import com.st.clab.stwin.gui.R
 
@@ -76,8 +74,8 @@ class SubSensorViewAdapter(
         private val mOdrSelector:Spinner = itemView.findViewById(R.id.subSensor_odrSelector)
         private val mFsSelector:Spinner = itemView.findViewById(R.id.subSensor_fsSelector)
         private val mFsUnit:TextView = itemView.findViewById(R.id.subSensor_fsUnit)
-        private val sampleSelector:TextInputEditText = itemView.findViewById(R.id.subSensor_sampleValue)
-        private val sampleSelectorLayout:TextInputLayout = itemView.findViewById(R.id.subSensor_sampleLayout)
+        private val mSampleTSValue:TextInputEditText = itemView.findViewById(R.id.subSensor_sampleValue)
+        private val mSampleTSLayout:TextInputLayout = itemView.findViewById(R.id.subSensor_sampleLayout)
 
         private var mSubSensor:SubSensorDescriptor? = null
         private var mSubSensorStatus:SubSensorStatus? = null
@@ -119,6 +117,7 @@ class SubSensorViewAdapter(
             setEnableState(status.isActive)
             setOdr(subSensor.odr,status.odr)
             setFS(subSensor.fs,status.fs)
+            setSample(subSensor.samplesPerTs,status.samplesPerTs)
         }
 
         private fun setOdr(odrValues: List<Double>?, currentValue: Double?) {
@@ -169,48 +168,44 @@ class SubSensorViewAdapter(
             mEnabledSwitch.setOnCheckedChangeListener(onCheckedChangeListener)
         }
 
-        private fun setSensorData(sensorType: String) {
-            val subSensorIcon:Int
-            val subSensorTypeLabel:String
-            when (sensorType) {
-                "ACC" -> {
-                    subSensorIcon = R.drawable.ic_accelerometer
-                    subSensorTypeLabel = "Accelerometer"
-                }
-                "MAG" -> {
-                    subSensorIcon = R.drawable.ic_compass
-                    subSensorTypeLabel = "Magnetometer"
-                }
-                "GYRO" -> {
-                    subSensorIcon = R.drawable.ic_gyroscope
-                    subSensorTypeLabel = "Gyroscope"
-                }
-                "TEMP" -> {
-                    subSensorIcon = R.drawable.ic_temperature
-                    subSensorTypeLabel = "Temperature"
-                }
-                "HUM" -> {
-                    subSensorIcon =  R.drawable.ic_humidity
-                    subSensorTypeLabel = "Humidity"
-                }
-                "PRESS" -> {
-                    subSensorIcon =  R.drawable.ic_pressure
-                    subSensorTypeLabel = "Pressure"
-                }
-                "MIC" -> {
-                    subSensorIcon = R.drawable.ic_microphone
-                    subSensorTypeLabel = "Microphone"
-                }
-                else ->{
-                    subSensorTypeLabel = ""
-                    subSensorIcon = R.drawable.ic_st_placeholder
-                }
-            }
-            mIcon.setImageResource(subSensorIcon)
-            mName.text = subSensorTypeLabel
+        private fun setSample(settings:SamplesPerTs,currentValue: Int?){
+            val errorMessage = mSampleTSLayout.context.getString(R.string.subSensor_sampleErrorFromat,settings.min,settings.max)
+            val inputChecker = CheckIntNumberRange(mSampleTSLayout, errorMessage, settings.min,
+                    settings.max)
+            mSampleTSValue.addTextChangedListener(inputChecker)
+            val value = currentValue ?: settings.min
+            mSampleTSValue.setText(value.toString())
+        }
+
+        private fun setSensorData(sensorType: SensorType) {
+            mIcon.setImageResource(sensorType.imageResource)
+            mName.setText(sensorType.nameResource)
         }
 
     }
 
+    private val SensorType.imageResource:Int
+    get() = when(this){
+        SensorType.Accelerometer -> R.drawable.ic_accelerometer
+        SensorType.Magnetometer -> R.drawable.ic_compass
+        SensorType.Gyroscope -> R.drawable.ic_gyroscope
+        SensorType.Temperature -> R.drawable.ic_temperature
+        SensorType.Humidity -> R.drawable.ic_humidity
+        SensorType.Pressure -> R.drawable.ic_pressure
+        SensorType.Microphone -> R.drawable.ic_microphone
+        SensorType.Unknown -> R.drawable.ic_st_placeholder
+    }
+
+    private val SensorType.nameResource:Int
+    get() = when(this){
+        SensorType.Accelerometer -> R.string.subSensor_type_acc
+        SensorType.Magnetometer -> R.string.subSensor_type_mag
+        SensorType.Gyroscope -> R.string.subSensor_type_gyro
+        SensorType.Temperature -> R.string.subSensor_type_temp
+        SensorType.Humidity -> R.string.subSensor_type_hum
+        SensorType.Pressure -> R.string.subSensor_type_press
+        SensorType.Microphone -> R.string.subSensor_type_mic
+        SensorType.Unknown -> R.string.subSensor_type_unknown
+    }
 
 }
