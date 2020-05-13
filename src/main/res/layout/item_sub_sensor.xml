@@ -69,8 +69,8 @@
             android:layout_marginTop="8dp"
             android:layout_marginEnd="16dp"
             app:layout_constraintEnd_toEndOf="@+id/subSensor_enable"
-            app:layout_constraintStart_toStartOf="@+id/textView3"
-            app:layout_constraintTop_toBottomOf="@+id/textView3" />
+            app:layout_constraintStart_toStartOf="@+id/subSensor_odrLabel"
+            app:layout_constraintTop_toBottomOf="@+id/subSensor_odrLabel" />
 
         <Spinner
             android:id="@+id/subSensor_fsSelector"
@@ -79,7 +79,7 @@
             android:layout_marginTop="8dp"
             app:layout_constraintEnd_toEndOf="@+id/subSensor_odrSelector"
             app:layout_constraintStart_toStartOf="@+id/subSensor_odrSelector"
-            app:layout_constraintTop_toBottomOf="@+id/textView6" />
+            app:layout_constraintTop_toBottomOf="@+id/subSensor_fullScaleLabel" />
 
         <Switch
             android:id="@+id/subSensor_enable"
@@ -101,16 +101,16 @@
             tools:text="ACCELEROMETER" />
 
         <TextView
-            android:id="@+id/textView6"
+            android:id="@+id/subSensor_fullScaleLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="TextView"
-            app:layout_constraintStart_toStartOf="@+id/textView3"
+            app:layout_constraintStart_toStartOf="@+id/subSensor_odrLabel"
             app:layout_constraintTop_toBottomOf="@+id/subSensor_odrSelector" />
 
         <TextView
-            android:id="@+id/textView3"
+            android:id="@+id/subSensor_odrLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
@@ -124,9 +124,9 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:text="TextView"
-            app:layout_constraintBaseline_toBaselineOf="@+id/textView6"
+            app:layout_constraintBaseline_toBaselineOf="@+id/subSensor_fullScaleLabel"
             app:layout_constraintEnd_toEndOf="@+id/subSensor_fsSelector"
-            app:layout_constraintStart_toEndOf="@+id/textView6" />
+            app:layout_constraintStart_toEndOf="@+id/subSensor_fullScaleLabel" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/subSensor_sampleLayout"
@@ -136,7 +136,7 @@
             android:layout_marginBottom="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="@+id/subSensor_fsSelector"
-            app:layout_constraintStart_toStartOf="@+id/textView6"
+            app:layout_constraintStart_toStartOf="@+id/subSensor_fullScaleLabel"
             app:layout_constraintTop_toBottomOf="@+id/subSensor_fsSelector">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -149,55 +149,12 @@
                 android:singleLine="true" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <androidx.constraintlayout.widget.Group
+            android:id="@+id/subSensor_paramViews"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:constraint_referenced_ids="subSensor_odrLabel,subSensor_fullScaleLabel,subSensor_fsSelector,subSensor_fsUnit,subSensor_odrSelector,subSensor_sampleLayout"/>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!--
-        <LinearLayout
-            android:id="@+id/subSensorRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:padding="2dp">
-
-            <LinearLayout
-                android:layout_width="100dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:gravity="center"
-                android:orientation="vertical">
-
-
-
-
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/subParamsLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:orientation="vertical">
-
-
-            </LinearLayout>
-
-        </LinearLayout>
-        <LinearLayout
-            android:id="@+id/subSensorRowMask"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginBottom="8dp"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:padding="2dp"
-            android:alpha="0.2"
-            android:background="@drawable/subsensor_shape_off"
-            android:clickable="false"
-            android:focusable="false"
-            android:visibility="invisible">
-        </LinearLayout>
-        -->
 </FrameLayout>

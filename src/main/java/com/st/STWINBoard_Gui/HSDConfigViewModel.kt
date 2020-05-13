@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.st.BlueSTSDK.Feature
 import com.st.BlueSTSDK.Features.highSpeedDataLog.FeatureHSDataLogConfig
 import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.Sensor
+import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.SubSensorDescriptor
 import com.st.BlueSTSDK.Node
 import com.st.STWINBoard_Gui.Utils.SensorViewAdapter
 import kotlinx.coroutines.Dispatchers
@@ -88,6 +89,7 @@ internal class HSDConfigViewModel : ViewModel(){
     val sensorsConfiguraiton:LiveData<List<Sensor>>
         get() = _boardConfiguration
 
+    private var mHSDConfigFeature:FeatureHSDataLogConfig? = null
     private val mSTWINConfListener = Feature.FeatureListener { f: Feature, sample: Feature.Sample? ->
         if (sample == null)
             return@FeatureListener
@@ -100,7 +102,9 @@ internal class HSDConfigViewModel : ViewModel(){
     }
 
     fun enableNotificationFromNode(node: Node){
-        node.getFeature(FeatureHSDataLogConfig::class.java)?.apply {
+        mHSDConfigFeature=node.getFeature(FeatureHSDataLogConfig::class.java)
+
+        mHSDConfigFeature?.apply {
             addFeatureListener(mSTWINConfListener)
             enableNotification()
             sendGETDevice()
@@ -112,6 +116,22 @@ internal class HSDConfigViewModel : ViewModel(){
             removeFeatureListener(mSTWINConfListener)
             disableNotification()
         }
+    }
+
+    fun changeODRValue(sensor: Sensor, subSensor: SubSensorDescriptor, newOdrValue: Double) {
+        Log.d("ConfigVM","onSubSensorODRChange ${sensor.id} -> ${subSensor.id} -> $newOdrValue")
+    }
+
+    fun changeFullScale(sensor: Sensor, subSensor: SubSensorDescriptor, newFSValue: Double) {
+        Log.d("ConfigVM","onSubSensorFSChange ${sensor.id} -> ${subSensor.id} -> $newFSValue")
+    }
+
+    fun changeSampleForTimeStamp(sensor: Sensor, subSensor: SubSensorDescriptor, newSampleValue: Double) {
+        Log.d("ConfigVM","onSubSensorSampleChange ${sensor.id} -> ${subSensor.id} -> $newSampleValue")
+    }
+
+    fun changeEnableState(sensor: Sensor, subSensor: SubSensorDescriptor, newState: Boolean) {
+        Log.d("ConfigVM","onSubSensorEnableChange ${sensor.id} -> ${subSensor.id} -> $newState")
     }
 
 }

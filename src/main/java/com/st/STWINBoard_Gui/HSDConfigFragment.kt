@@ -37,13 +37,9 @@
 package com.st.STWINBoard_Gui
 
 import android.app.Activity
-import android.app.AlertDialog
 import android.app.Dialog
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentFilter
-import android.net.Uri
-import android.os.AsyncTask
 import android.os.Bundle
 import android.util.Log
 import android.view.*
@@ -56,238 +52,40 @@ import androidx.lifecycle.Observer
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
-import com.st.BlueSTSDK.Feature
-import com.st.BlueSTSDK.Feature.FeatureListener
-import com.st.BlueSTSDK.Features.highSpeedDataLog.FeatureHSDataLogConfig
-import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.Sensor
-import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.SubSensorDescriptor
 import com.st.BlueSTSDK.Manager
 import com.st.BlueSTSDK.Node
 import com.st.STWINBoard_Gui.Control.DeviceManagerInterface
 import com.st.STWINBoard_Gui.Utils.SensorViewAdapter
-import com.st.STWINBoard_Gui.Utils.SensorViewAdapter.*
 import com.st.clab.stwin.gui.R
-import org.json.JSONException
-import org.json.JSONObject
-import java.io.*
 
 /**
  *
  */
 open class HSDConfigFragment : Fragment() {
-    private var deviceManager: DeviceManagerInterface? = null
     private lateinit var recyclerView: RecyclerView
 
     private var mTaggingMaskView: LinearLayout? = null
     private var mMaskView: LinearLayout? = null
     private var dataImageView: ImageView? = null
     private var mDataTransferAnimation: Animation? = null
-    var stopMenuItem: MenuItem? = null
-    var startMenuItem: MenuItem? = null
 
     private val viewModel by viewModels<HSDConfigViewModel>()
 
     private val mSensorsAdapter = SensorViewAdapter(
             onSubSensorODRChange = {sensor, subSensor, newOdrValue ->
-                Log.d(TAG,"onSubSensorODRChange ${sensor.id} -> ${subSensor.id} -> $newOdrValue")
+                viewModel.changeODRValue(sensor,subSensor,newOdrValue)
             },
             onSubSensorFullScaleChange = {sensor, subSensor, newFSValue ->
-                Log.d(TAG,"onSubSensorODRChange ${sensor.id} -> ${subSensor.id} -> $newFSValue")
+                viewModel.changeFullScale(sensor,subSensor,newFSValue)
             },
             onSubSensorSampleChange = {sensor, subSensor, newSampleValue ->
-                Log.d(TAG,"onSubSensorODRChange ${sensor.id} -> ${subSensor.id} -> $newSampleValue")
+                viewModel.changeSampleForTimeStamp(sensor,subSensor,newSampleValue)
             },
             onSubSubSensorEnableStatusChange = {sensor, subSensor, newState ->
-                Log.d(TAG,"onSubSensorODRChange ${sensor.id} -> ${subSensor.id} -> $newState")
+                viewModel.changeEnableState(sensor,subSensor,newState)
             })
 
 
-    //NOTE if for some reason it will be necessary to hide a sensor, update the following lambda
-    //private SensorViewAdapter.FilterSensor mFilterSensor = s -> true;
-    //NOTE if for some reason it will be necessary to hide a subsensor, update the following lambda
-    //private SubSensorViewAdapter.FilterSubSensor mFilterSubSensor = ssc -> true;
-    private fun manageSensorSpinnerSelection(sensorId: Int, paramName: String, value: String) {
-        if (deviceManager!!.getSensorStatusParam(sensorId, paramName) != null &&
-                deviceManager!!.getSensorStatusParam(sensorId, paramName) != value) {
-            val jsonSetMessage = deviceManager!!.createSetSensorStatusParamCommand(sensorId, paramName, value)
-            deviceManager!!.encapsulateAndSend(jsonSetMessage)
-        }
-    }
-
-    private fun manageSubSensorSpinnerSelection(sensorId: Int, subSensorId: Int, paramName: String, value: String) {
-        if (deviceManager!!.getSubSensorStatusParam(sensorId, subSensorId, paramName) != null &&
-                deviceManager!!.getSubSensorStatusParam(sensorId, subSensorId, paramName) != value) {
-            val jsonSetMessage = deviceManager!!.createSetSubSensorStatusParamCommand(sensorId, subSensorId, paramName, value)
-            deviceManager!!.encapsulateAndSend(jsonSetMessage)
-        }
-    }
-
-    private fun manageSensorSwitchClicked(sensorId: Int) {
-        //deviceManager!!.updateSensorIsActiveModel(sensorId)
-        val jsonSetMessage = deviceManager!!.createSetSensorIsActiveCommand(sensorId)
-        deviceManager!!.encapsulateAndSend(jsonSetMessage)
-    }
-
-    private fun manageSubSensorIconClicked(sensorId: Int, subSensorId: Int) {
-//        if (deviceManager!!.deviceModel.getSensor(sensorId)!!.sensorStatus.isActive) {
-//            deviceManager!!.updateSubSensorIsActiveModel(sensorId, subSensorId)
-//            val jsonSetMessage = deviceManager!!.createSetSubSensorIsActiveCommand(sensorId, subSensorId)
-//            deviceManager!!.encapsulateAndSend(jsonSetMessage)
-//        }
-    }
-
-    private fun manageSensorEditTextChanged(sensorId: Int, paramName: String, value: String) {
-//        if (deviceManager!!.getSensorStatusParam(sensorId, paramName) != value) {
-//            val jsonSetMessage = deviceManager!!.createSetSensorStatusParamCommand(sensorId, paramName, value)
-//            deviceManager!!.encapsulateAndSend(jsonSetMessage)
-//        }
-    }
-
-    private fun manageSubSensorEditTextChanged(sensorId: Int, subSensorId: Int, paramName: String, value: String) {
-//        if (deviceManager!!.getSubSensorStatusParam(sensorId, subSensorId, paramName) != value) {
-//            val jsonSetMessage = deviceManager!!.createSetSubSensorStatusParamCommand(sensorId, subSensorId, paramName, value)
-//            deviceManager!!.encapsulateAndSend(jsonSetMessage)
-//        }
-    }
-
-    //NOTE /////////////////////////////////////////////////////////////////////////////////////////////
-    @Throws(IOException::class)
-    private fun iStreamToString(`is`: InputStream?): String {
-        val isReader = InputStreamReader(`is`)
-        //Creating a BufferedReader object
-        val reader = BufferedReader(isReader)
-        val sb = StringBuffer()
-        var str: String?
-        while (reader.readLine().also { str = it } != null) {
-            sb.append(str)
-        }
-        return sb.toString()
-    }
-/*
-    inner class LoadJSONTask : AsyncTask<Uri, Void?, JSONObject?>() {
-        override fun doInBackground(vararg uris: Uri): JSONObject? {
-            val jsonUri = uris[0]
-            val jsonObject: JSONObject
-            var inputStream: InputStream? = null
-            try {
-                inputStream = activity!!.contentResolver.openInputStream(jsonUri)
-                jsonObject = JSONObject(iStreamToString(inputStream))
-                inputStream!!.close()
-                Log.e("TAG", "jsonObject obtained!!!!")
-                return jsonObject
-            } catch (e: JSONException) {
-                e.printStackTrace()
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-            return null
-        }
-
-        override fun onPostExecute(jsonObject: JSONObject?) {
-            super.onPostExecute(jsonObject)
-            mLoadConfTask = LoadConfTask()
-            mLoadConfTask!!.execute(jsonObject)
-        }
-    }
-
-    inner class SendConfTask : AsyncTask<DeviceManagerInterface, Void, DeviceManagerInterface>() {
-        override fun doInBackground(vararg deviceManagers: DeviceManager): DeviceManager {
-            return deviceManagers[0]
-        }
-
-        override fun onPostExecute(dm: DeviceManager) {
-            super.onPostExecute(dm)
-            val dev = dm.deviceModel
-            var message: String?
-            for (s in dev.sensors) {
-                val ss = s.sensorStatus
-                message = dm.createSetSensorIsActiveCommand(s.id, ss.isActive)
-                deviceManager!!.encapsulateAndSend(message)
-                for ((name, value) in s.sensorStatus.statusParams) {
-                    message = dm.createSetSensorStatusParamCommand(s.id, name, value)
-                    deviceManager!!.encapsulateAndSend(message)
-                }
-                for (sss in s.sensorStatus.subSensorStatusList) {
-                    message = dm.createSetSubSensorIsActiveCommand(s.id, sss.id, sss.isActive)
-                    deviceManager!!.encapsulateAndSend(message)
-                    for ((name, value) in sss.params) {
-                        message = dm.createSetSubSensorStatusParamCommand(s.id, sss.id, name, value)
-                        deviceManager!!.encapsulateAndSend(message)
-                    }
-                }
-            }
-        }
-
-    }
-
-    inner class LoadConfTask : AsyncTask<JSONObject, Void?, DeviceManager?>() {
-        override fun doInBackground(vararg jsonObjects: JSONObject): DeviceManager? {
-            val loadedJson = jsonObjects[0]
-            try {
-                deviceManager!!.setDevice(loadedJson)
-            } catch (e: JSONException) {
-                e.printStackTrace()
-                return null
-            }
-            return deviceManager
-        }
-
-        override fun onPostExecute(dm: DeviceManager?) {
-            super.onPostExecute(dm)
-            val checkModelEM = dm!!.checkModel()
-            if (checkModelEM != null) {
-                //Dialog
-                val alertDialog = AlertDialog.Builder(context).create()
-                alertDialog.setTitle("Loaded JSON Model Error")
-                alertDialog.setMessage(checkModelEM)
-                alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK"
-                ) { dialog: DialogInterface, which: Int -> dialog.dismiss() }
-                alertDialog.show()
-            } else {
-                mSensorsAdapter = SensorViewAdapter(
-                        dm.deviceModel.sensors,
-                        object : OnSensorSwitchClickedListener{
-                            override fun onSensorSwitchClicked(sensorId: Int) {
-                                Log.d(TAG,"onSensorSwitchClicked $sensorId")
-                                manageSensorSwitchClicked(sensorId)
-                            }
-                        } ,
-                        object : OnSensorEditTextChangedListener {
-                            override fun onEditTextValueChanged(sensorId: Int, paramName: String, value: String) {
-                                Log.d(TAG,"onEditTextValueChanged $sensorId -> $paramName:$value")
-                                manageSensorEditTextChanged(sensorId, paramName, value)
-                            }
-                        },
-                        object : OnSubSensorIconClickedListener {
-                            override fun onSubSensorChangeActivationStatus(sensorId: Int, subSensorId: Int, newState:Boolean) {
-                                Log.d(TAG,"onSubSensorIconClicked $sensorId - $subSensorId enable:$newState")
-                                manageSubSensorIconClicked(sensorId, subSensorId)
-                            }
-                        },
-                        object : OnSubSensorEditTextChangedListener {
-                            override fun onSubSensorEditTextValueChanged(sensorId: Int, subSensorId: Int?, paramName: String, value: String) {
-                                Log.d(TAG,"onSubSensorEditTextValueChanged $sensorId - $subSensorId $paramName:$value")
-                                manageSubSensorEditTextChanged(sensorId, subSensorId!!, paramName, value)
-                            }
-                        }
-                )
-                // Set the adapter
-                recyclerView!!.adapter = mSensorsAdapter
-
-                //NOTE - check this
-                //updateGui(() -> {
-                mSensorsAdapter!!.notifyDataSetChanged()
-                //});
-                val mSendConfTask = SendConfTask()
-                mSendConfTask.execute(dm)
-            }
-        }
-
-        override fun onCancelled() {
-            super.onCancelled()
-        }
-    }
-*/
     private fun requestConfigurationFile() {
         val chooserFile = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_DEFAULT)
@@ -315,26 +113,9 @@ open class HSDConfigFragment : Fragment() {
         }
     }
 
-    //NOTE /////////////////////////////////////////////////////////////////////////////////////////////
-    override fun onResume() {
-        super.onResume()
-//        if (deviceManager != null && deviceManager!!.deviceModel != null) {
-//            val loadConfTask = LoadConfTask()
-//            loadConfTask.execute(deviceManager!!.jsoNfromDevice)
-//        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
-        //deviceManager = DeviceManager()
-    }
-
-    private fun obscureConfig(maskLayout: View?, animImage: ImageView?) {
-        maskLayout!!.visibility = View.VISIBLE
-        maskLayout.requestFocus()
-        maskLayout.isClickable = true
-        animImage?.startAnimation(mDataTransferAnimation)
     }
 
     private fun unobscureConfig(maskLayout: View?, animImage: ImageView?) {
@@ -407,10 +188,7 @@ open class HSDConfigFragment : Fragment() {
         }
     }
 
-    private lateinit var mNode: Node
-
-     fun enableNeededNotification(node: Node) {
-         mNode = node;
+    fun enableNeededNotification(node: Node) {
         viewModel.enableNotificationFromNode(node)
     }
 
@@ -419,27 +197,8 @@ open class HSDConfigFragment : Fragment() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        //menu.findItem(R.id.startLog).isVisible = false
-        startMenuItem?.getActionView()?.setOnClickListener { view: View? ->
-            startMenuItem?.setVisible(false)
-            stopMenuItem?.setVisible(true)
-            val jsonStartMessage = deviceManager!!.createStartCommand()
-            deviceManager!!.encapsulateAndSend(jsonStartMessage)
-          //  deviceManager!!.setIsLogging(true)
-            obscureConfig(mTaggingMaskView, null)
-            Log.e("STWINConfigFragment", "START TAG PRESSED!!!!")
-        }
-        stopMenuItem?.getActionView()?.setOnClickListener { view: View? ->
-            startMenuItem?.setVisible(true)
-            stopMenuItem?.setVisible(false)
-            //deviceManager!!.setIsLogging(false)
-            unobscureConfig(mMaskView, dataImageView)
-            val jsonStopMessage = deviceManager!!.createStopCommand()
-            deviceManager!!.encapsulateAndSend(jsonStopMessage)
-        }
-        startMenuItem?.setVisible(!deviceManager!!.isLogging)
-        stopMenuItem?.setVisible(deviceManager!!.isLogging)
         super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.menu_stwin_hs_datalog,menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -517,7 +276,6 @@ open class HSDConfigFragment : Fragment() {
     }
 
     companion object {
-        private val TAG = "HSDConfigFragment"
         private val WIFI_CONFIG_FRAGMENT_TAG = HSDConfigFragment::class.java.name + ".WIFI_CONFIG_FRAGMENT"
         private val ALIAS_CONFIG_FRAGMENT_TAG = HSDConfigFragment::class.java.name + ".ALIAS_CONFIG_FRAGMENT"
         private const val PICKFILE_REQUEST_CODE = 7777

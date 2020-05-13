@@ -3,9 +3,11 @@ package com.st.STWINBoard_Gui.Utils
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.util.Log
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import android.widget.*
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.textfield.TextInputEditText
@@ -19,7 +21,6 @@ class SubSensorViewAdapter(
         private val onSubSensorODRChange: OnSubSensorODRChange,
         private val onSubSensorFullScaleChange: OnSubSensorFullScaleChange,
         private val onSubSensorSampleChange: OnSubSensorSampleChange) : RecyclerView.Adapter<SubSensorViewAdapter.ViewHolder>() {
-    private val sID: Int = sensor.id
 
     //SubParam List
     private val mSubSensorList: List<SubSensorDescriptor> = sensor.sensorDescriptor.subSensorDescriptors
@@ -40,7 +41,7 @@ class SubSensorViewAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val view = inflater.inflate(R.layout.item_sub_sensor, parent, false)
-        return ViewHolder(sID,view)
+        return ViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -56,21 +57,10 @@ class SubSensorViewAdapter(
         return mSubSensorList.size
     }
 
-    private fun manageSubSensorStatus(subSensorStatus: SubSensorStatus, subSensorIcon: ImageView, layoutMask: LinearLayout) {
-        if (subSensorStatus.isActive) {
-            subSensorIcon.clearColorFilter()
-            layoutMask.isClickable = false
-            layoutMask.visibility = View.INVISIBLE
-        } else {
-            subSensorIcon.colorFilter = sToGrayScale
-            layoutMask.isClickable = true
-            layoutMask.visibility = View.VISIBLE
-        }
-    }
-
-    inner class ViewHolder(sensorId:Int,itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val mIcon: ImageView = itemView.findViewById(R.id.subSensor_icon)
         private val mName: TextView = itemView.findViewById(R.id.subSensor_name)
+        private val mParamViews:View = itemView.findViewById(R.id.subSensor_paramViews)
         private val mEnabledSwitch:Switch = itemView.findViewById(R.id.subSensor_enable)
         private val mOdrSelector:Spinner = itemView.findViewById(R.id.subSensor_odrSelector)
         private val mFsSelector:Spinner = itemView.findViewById(R.id.subSensor_fsSelector)
@@ -84,6 +74,7 @@ class SubSensorViewAdapter(
         private val onCheckedChangeListener  = object : CompoundButton.OnCheckedChangeListener{
             override fun onCheckedChanged(buttonView: CompoundButton?, isChecked: Boolean) {
                 val subSensor = mSubSensor ?: return
+                displayParamViews(isChecked)
                 onSubSensorEnableStatusChange(sensor,subSensor,isChecked)
             }
         }
@@ -109,6 +100,19 @@ class SubSensorViewAdapter(
                     Log.d("SubSensor","FS onItemChange $selectedValue")
                 }
             })
+
+            mSampleTSValue.setOnEditorActionListener { v: TextView, actionId: Int, event: KeyEvent? ->
+                val subSensor = mSubSensor ?: return@setOnEditorActionListener false
+                val newValue = v.text.toString().toDoubleOrNull() ?: return@setOnEditorActionListener false
+                when (actionId) {
+                    EditorInfo.IME_ACTION_DONE-> {
+                        onSubSensorSampleChange(sensor,subSensor,newValue)
+                        v.clearFocus()
+                    }
+                }
+                false
+            }
+
         }
 
         fun bind(subSensor:SubSensorDescriptor, status: SubSensorStatus){
@@ -169,7 +173,16 @@ class SubSensorViewAdapter(
         private fun setEnableState(newState:Boolean){
             mEnabledSwitch.setOnCheckedChangeListener(null)
             mEnabledSwitch.isChecked = newState
+            displayParamViews(newState)
             mEnabledSwitch.setOnCheckedChangeListener(onCheckedChangeListener)
+        }
+
+        private fun displayParamViews(showIt:Boolean){
+            mParamViews.visibility = if(showIt){
+                View.VISIBLE
+            }else{
+                View.GONE
+            }
         }
 
         private fun setSample(settings:SamplesPerTs,currentValue: Int?){
