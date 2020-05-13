@@ -57,7 +57,7 @@
             android:layout_marginTop="8dp"
             android:clickable="true"
             android:focusable="true"
-            android:src="@drawable/ic_st_placeholder"
+            android:src="@drawable/sensor_type_unknown"
             app:layout_constraintStart_toStartOf="@+id/subSensor_name"
             app:layout_constraintTop_toBottomOf="@+id/subSensor_name" />
 

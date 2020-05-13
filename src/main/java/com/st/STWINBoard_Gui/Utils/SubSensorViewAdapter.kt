@@ -203,14 +203,14 @@ class SubSensorViewAdapter(
 
     private val SensorType.imageResource:Int
     get() = when(this){
-        SensorType.Accelerometer -> R.drawable.ic_accelerometer
-        SensorType.Magnetometer -> R.drawable.ic_compass
-        SensorType.Gyroscope -> R.drawable.ic_gyroscope
-        SensorType.Temperature -> R.drawable.ic_temperature
-        SensorType.Humidity -> R.drawable.ic_humidity
-        SensorType.Pressure -> R.drawable.ic_pressure
-        SensorType.Microphone -> R.drawable.ic_microphone
-        SensorType.Unknown -> R.drawable.ic_st_placeholder
+        SensorType.Accelerometer -> R.drawable.sensor_type_accelerometer
+        SensorType.Magnetometer -> R.drawable.sensor_type_compass
+        SensorType.Gyroscope -> R.drawable.sensor_type_gyroscope
+        SensorType.Temperature -> R.drawable.sensor_type_temperature
+        SensorType.Humidity -> R.drawable.sensor_type_humidity
+        SensorType.Pressure -> R.drawable.sensor_type_pressure
+        SensorType.Microphone -> R.drawable.sensor_type_microphone
+        SensorType.Unknown -> R.drawable.sensor_type_unknown
     }
 
     private val SensorType.nameResource:Int
