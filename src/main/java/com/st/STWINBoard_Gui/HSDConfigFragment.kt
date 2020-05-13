@@ -59,6 +59,8 @@ import com.google.android.material.snackbar.Snackbar
 import com.st.BlueSTSDK.Feature
 import com.st.BlueSTSDK.Feature.FeatureListener
 import com.st.BlueSTSDK.Features.highSpeedDataLog.FeatureHSDataLogConfig
+import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.Sensor
+import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.SubSensorDescriptor
 import com.st.BlueSTSDK.Manager
 import com.st.BlueSTSDK.Node
 import com.st.STWINBoard_Gui.Control.DeviceManagerInterface
@@ -74,64 +76,31 @@ import java.io.*
  */
 open class HSDConfigFragment : Fragment() {
     private var deviceManager: DeviceManagerInterface? = null
-    private var recyclerView: RecyclerView? = null
-    private var mSensorsAdapter: SensorViewAdapter? = null
+    private lateinit var recyclerView: RecyclerView
+
     private var mTaggingMaskView: LinearLayout? = null
     private var mMaskView: LinearLayout? = null
     private var dataImageView: ImageView? = null
     private var mDataTransferAnimation: Animation? = null
     var stopMenuItem: MenuItem? = null
     var startMenuItem: MenuItem? = null
-    private var mSTWINConf: FeatureHSDataLogConfig? = null
 
     private val viewModel by viewModels<HSDConfigViewModel>()
 
-    /**
-     * listener for the STWIN Conf feature, it will
-     *
-     */
-    private val mSTWINConfListener = FeatureListener { f: Feature, sample: Feature.Sample? ->
-        if(sample == null)
-            return@FeatureListener
+    private val mSensorsAdapter = SensorViewAdapter(
+            onSubSensorODRChange = {sensor, subSensor, newOdrValue ->
+                Log.d(TAG,"onSubSensorODRChange ${sensor.id} -> ${subSensor.id} -> $newOdrValue")
+            },
+            onSubSensorFullScaleChange = {sensor, subSensor, newFSValue ->
+                Log.d(TAG,"onSubSensorODRChange ${sensor.id} -> ${subSensor.id} -> $newFSValue")
+            },
+            onSubSensorSampleChange = {sensor, subSensor, newSampleValue ->
+                Log.d(TAG,"onSubSensorODRChange ${sensor.id} -> ${subSensor.id} -> $newSampleValue")
+            },
+            onSubSubSensorEnableStatusChange = {sensor, subSensor, newState ->
+                Log.d(TAG,"onSubSensorODRChange ${sensor.id} -> ${subSensor.id} -> $newState")
+            })
 
-        val deviceConf = FeatureHSDataLogConfig.getDeviceConfig(sample) ?: return@FeatureListener
-        val sensors = deviceConf.sensors ?: return@FeatureListener
-        activity?.runOnUiThread{
-            mSensorsAdapter = SensorViewAdapter(
-                    sensors,
-                    object : OnSensorSwitchClickedListener{
-                        override fun onSensorSwitchClicked(sensorId: Int) {
-                            Log.d(TAG,"onSensorSwitchClicked $sensorId")
-                            manageSensorSwitchClicked(sensorId)
-                        }
-                    } ,
-                    object : OnSensorEditTextChangedListener {
-                        override fun onEditTextValueChanged(sensorId: Int, paramName: String, value: String) {
-                            Log.d(TAG,"onEditTextValueChanged $sensorId -> $paramName:$value")
-                            manageSensorEditTextChanged(sensorId, paramName, value)
-                        }
-                    },
-                    object : OnSubSensorIconClickedListener {
-                        override fun onSubSensorChangeActivationStatus(sensorId: Int, subSensorId: Int, newState:Boolean) {
-                            Log.d(TAG,"onSubSensorIconClicked $sensorId - $subSensorId enable:$newState")
-                            manageSubSensorIconClicked(sensorId, subSensorId)
-                        }
-                    },
-                    object : OnSubSensorEditTextChangedListener {
-                        override fun onSubSensorEditTextValueChanged(sensorId: Int, subSensorId: Int?, paramName: String, value: String) {
-                            Log.d(TAG,"onSubSensorEditTextValueChanged $sensorId - $subSensorId $paramName:$value")
-                            manageSubSensorEditTextChanged(sensorId, subSensorId!!, paramName, value)
-                        }
-                    }
-            )
-            // Set the adapter
-            recyclerView!!.adapter = mSensorsAdapter
-
-            //NOTE - check this
-            //updateGui(() -> {
-            mSensorsAdapter!!.notifyDataSetChanged()
-        }
-    }
 
     //NOTE if for some reason it will be necessary to hide a sensor, update the following lambda
     //private SensorViewAdapter.FilterSensor mFilterSensor = s -> true;
@@ -389,6 +358,8 @@ open class HSDConfigFragment : Fragment() {
         }
 
         recyclerView = root.findViewById(R.id.sensors_list)
+        recyclerView.adapter = mSensorsAdapter
+
         mTaggingMaskView = root.findViewById(R.id.start_log_mask)
         mMaskView = root.findViewById(R.id.animation_mask)
         dataImageView = root.findViewById(R.id.ongoingLogImageView)
@@ -402,6 +373,9 @@ open class HSDConfigFragment : Fragment() {
         viewModel.error.observe(viewLifecycleOwner, Observer { error ->
             if(error!=null)
                 displayErrorMessage(error)
+        })
+        viewModel.sensorsConfiguraiton.observe(viewLifecycleOwner, Observer {
+            mSensorsAdapter.submitList(it)
         })
     }
 
@@ -437,21 +411,11 @@ open class HSDConfigFragment : Fragment() {
 
      fun enableNeededNotification(node: Node) {
          mNode = node;
-        mSTWINConf = node.getFeature(FeatureHSDataLogConfig::class.java)
-        //NOTE new STWINConf char
-        mSTWINConf?.apply {
-            addFeatureListener(mSTWINConfListener)
-            enableNotification()
-            Log.e("TEST", "notifEnabled")
-            sendGETDevice()
-        }
+        viewModel.enableNotificationFromNode(node)
     }
 
      fun disableNeedNotification(node: Node) {
-        mSTWINConf?.apply {
-            removeFeatureListener(mSTWINConfListener)
-            disableNotification()
-        }
+        viewModel.disableNotificationFromNode(node)
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

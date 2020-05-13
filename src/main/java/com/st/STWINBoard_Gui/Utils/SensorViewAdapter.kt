@@ -7,48 +7,24 @@ import android.widget.LinearLayout
 import android.widget.Switch
 import android.widget.TextView
 import androidx.cardview.widget.CardView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.Sensor
+import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.SubSensorDescriptor
 import com.st.clab.stwin.gui.R
 
+typealias OnSubSensorEnableStatusChange = (sensor:Sensor,subSensor: SubSensorDescriptor, newState:Boolean)->Unit
+typealias OnSubSensorODRChange = (sensor:Sensor,subSensor: SubSensorDescriptor, newOdrValue:Double)->Unit
+typealias OnSubSensorFullScaleChange = (sensor:Sensor,subSensor: SubSensorDescriptor, newFSValue:Double)->Unit
+typealias OnSubSensorSampleChange = (sensor:Sensor,subSensor: SubSensorDescriptor, newSampleValue:Double)->Unit
+
 class SensorViewAdapter(//Activity Context
-        private val mSensorList: List<Sensor>,
-        private val mSensorSwitchClickedListener: OnSensorSwitchClickedListener,
-        private val mSensorEditTextListener: OnSensorEditTextChangedListener,
-        private val mSubSensorIconClickedListener: OnSubSensorIconClickedListener,
-        private val mSubSensorEditTextChangedListener: OnSubSensorEditTextChangedListener) : RecyclerView.Adapter<SensorViewAdapter.ViewHolder>() {
-
-
-    interface OnSwitchClickedListener {
-        fun onSensorSwitchClicked(sensorId: Int)
-    }
-
-    interface OnSensorSwitchClickedListener : OnSwitchClickedListener
-
-    interface OnEditTextChangedListener {
-        /**
-         * function call when a spinner value is selected by the user
-         * @param
-         */
-        fun onEditTextValueChanged(sensorId: Int, paramName: String, value: String)
-    }
-
-    interface OnSensorEditTextChangedListener : OnEditTextChangedListener
-
-    interface SubSensorActiveStatusListener {
-        fun onSubSensorChangeActivationStatus(sensorId: Int, subSensorId: Int,newActiveState:Boolean)
-    }
-
-    interface OnSubSensorIconClickedListener : SubSensorActiveStatusListener
-    interface OnSubEditTextChangedListener {
-        /**
-         * function call when a spinner value is selected by the user
-         * @param
-         */
-        fun onSubSensorEditTextValueChanged(sensorId: Int, subSensorId: Int?, paramName: String, value: String)
-    }
-
-    interface OnSubSensorEditTextChangedListener : OnSubEditTextChangedListener
+        private val onSubSubSensorEnableStatusChange: OnSubSensorEnableStatusChange,
+        private val onSubSensorODRChange: OnSubSensorODRChange,
+        private val onSubSensorFullScaleChange: OnSubSensorFullScaleChange,
+        private val onSubSensorSampleChange: OnSubSensorSampleChange) :
+        ListAdapter<Sensor,SensorViewAdapter.ViewHolder>(SensorDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -57,36 +33,19 @@ class SensorViewAdapter(//Activity Context
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val s = mSensorList[position]
+        val s = getItem(position)
         holder.mSensor = s
         holder.mSensorName.text = s.name
         holder.mSensorId.text = s.id.toString()
 
         val subSensorParamsAdapter = SubSensorViewAdapter(
                 s,
-                mSubSensorIconClickedListener,
-                mSubSensorEditTextChangedListener)
+                onSubSubSensorEnableStatusChange,
+                onSubSensorODRChange,
+                onSubSensorFullScaleChange,
+                onSubSensorSampleChange)
 
         holder.mSubSensorListView.adapter = subSensorParamsAdapter
-        manageSensorStatus(s, holder.mSensorName, holder.mSensorCardMask)
-        //subSensorParamsAdapter.notifyDataSetChanged();
-        //sensorParamsAdapter.notifyDataSetChanged();
-    }
-
-    override fun getItemCount(): Int {
-        return mSensorList.size
-    }
-
-    private fun manageSensorStatus(sensor: Sensor?, sensorName: Switch, layoutMask: CardView) {
-        if (true) {
-            sensorName.isChecked = true
-            layoutMask.isClickable = false
-            layoutMask.visibility = View.INVISIBLE
-        } else {
-            sensorName.isChecked = false
-            layoutMask.isClickable = true
-            layoutMask.visibility = View.VISIBLE
-        }
     }
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -107,19 +66,18 @@ class SensorViewAdapter(//Activity Context
             mSensorParamsLayout = itemView.findViewById(R.id.sensor_param_layout)
             mSensorParamListView = itemView.findViewById(R.id.sensorParamList)
             mSubSensorListView = itemView.findViewById(R.id.subSensorList)
-            mSensorName.setOnClickListener { view: View? ->
-                val position = adapterPosition
-                mSensorSwitchClickedListener.onSensorSwitchClicked(position)
-                manageSensorStatus(mSensor, mSensorName, mSensorCardMask)
-            }
-            mSensorCardMask.setOnClickListener { view: View? ->
-                val position = adapterPosition
-                mSensorSwitchClickedListener.onSensorSwitchClicked(position)
-                mSensorCardMask.visibility = View.INVISIBLE
-                mSensorCardMask.isClickable = false
-                mSensorName.isChecked = true
-            }
         }
+    }
+
+}
+
+private class SensorDiffCallback : DiffUtil.ItemCallback<Sensor>(){
+    override fun areItemsTheSame(oldItem: Sensor, newItem: Sensor): Boolean {
+        return oldItem.id == newItem.id
+    }
+
+    override fun areContentsTheSame(oldItem: Sensor, newItem: Sensor): Boolean {
+        return oldItem == newItem
     }
 
 }

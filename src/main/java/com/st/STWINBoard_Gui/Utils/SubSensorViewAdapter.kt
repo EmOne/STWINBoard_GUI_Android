@@ -11,13 +11,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.*
-import com.st.STWINBoard_Gui.Utils.SensorViewAdapter.*
 import com.st.clab.stwin.gui.R
 
 class SubSensorViewAdapter(
-        sensor: Sensor,
-        private val sensorEnableChangeListener: OnSubSensorIconClickedListener?,
-        private val subSensorEditTextListener: OnSubSensorEditTextChangedListener) : RecyclerView.Adapter<SubSensorViewAdapter.ViewHolder>() {
+        private val sensor: Sensor,
+        private val onSubSensorEnableStatusChange: OnSubSensorEnableStatusChange,
+        private val onSubSensorODRChange: OnSubSensorODRChange,
+        private val onSubSensorFullScaleChange: OnSubSensorFullScaleChange,
+        private val onSubSensorSampleChange: OnSubSensorSampleChange) : RecyclerView.Adapter<SubSensorViewAdapter.ViewHolder>() {
     private val sID: Int = sensor.id
 
     //SubParam List
@@ -83,7 +84,7 @@ class SubSensorViewAdapter(
         private val onCheckedChangeListener  = object : CompoundButton.OnCheckedChangeListener{
             override fun onCheckedChanged(buttonView: CompoundButton?, isChecked: Boolean) {
                 val subSensor = mSubSensor ?: return
-                sensorEnableChangeListener?.onSubSensorChangeActivationStatus(sensorId,subSensor.id,isChecked)
+                onSubSensorEnableStatusChange(sensor,subSensor,isChecked)
             }
         }
 
@@ -93,7 +94,8 @@ class SubSensorViewAdapter(
 
                 override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                     val selectedValue = parent?.getItemAtPosition(position) as Double
-                    Log.d("SubSensor","ODR onItemChange $selectedValue")
+                    val subSensor = mSubSensor ?: return
+                    onSubSensorODRChange(sensor,subSensor,selectedValue)
                 }
             })
 
@@ -101,7 +103,9 @@ class SubSensorViewAdapter(
                 override fun onNothingSelected(parent: AdapterView<*>?) { }
 
                 override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                    val selectedValue = parent?.getItemAtPosition(position) as Int
+                    val selectedValue = parent?.getItemAtPosition(position) as Double
+                    val subSensor = mSubSensor ?: return
+                    onSubSensorFullScaleChange(sensor,subSensor,selectedValue)
                     Log.d("SubSensor","FS onItemChange $selectedValue")
                 }
             })

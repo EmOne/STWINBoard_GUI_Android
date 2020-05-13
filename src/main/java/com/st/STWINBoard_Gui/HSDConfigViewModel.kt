@@ -7,6 +7,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.st.BlueSTSDK.Feature
+import com.st.BlueSTSDK.Features.highSpeedDataLog.FeatureHSDataLogConfig
+import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.Sensor
+import com.st.BlueSTSDK.Node
+import com.st.STWINBoard_Gui.Utils.SensorViewAdapter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.FileNotFoundException
@@ -75,6 +80,37 @@ internal class HSDConfigViewModel : ViewModel(){
                 e.printStackTrace()
                 _error.postValue(Error.ImpossibleWriteFile)
             }
+        }
+    }
+
+    private val currentConfig:List<Sensor> = emptyList()
+    private val _boardConfiguration = MutableLiveData<List<Sensor>>(emptyList())
+    val sensorsConfiguraiton:LiveData<List<Sensor>>
+        get() = _boardConfiguration
+
+    private val mSTWINConfListener = Feature.FeatureListener { f: Feature, sample: Feature.Sample? ->
+        if (sample == null)
+            return@FeatureListener
+
+        val deviceConf = FeatureHSDataLogConfig.getDeviceConfig(sample) ?: return@FeatureListener
+        val newConfiguration = deviceConf.sensors ?: return@FeatureListener
+        if(currentConfig!=newConfiguration){
+            _boardConfiguration.postValue(newConfiguration)
+        }
+    }
+
+    fun enableNotificationFromNode(node: Node){
+        node.getFeature(FeatureHSDataLogConfig::class.java)?.apply {
+            addFeatureListener(mSTWINConfListener)
+            enableNotification()
+            sendGETDevice()
+        }
+    }
+
+    fun disableNotificationFromNode(node: Node){
+        node.getFeature(FeatureHSDataLogConfig::class.java)?.apply {
+            removeFeatureListener(mSTWINConfListener)
+            disableNotification()
         }
     }
 
