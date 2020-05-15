@@ -9,10 +9,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.st.BlueSTSDK.Feature
 import com.st.BlueSTSDK.Features.highSpeedDataLog.FeatureHSDataLogConfig
+import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.*
 import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.Sensor
 import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.SubSensorDescriptor
 import com.st.BlueSTSDK.Node
-import com.st.STWINBoard_Gui.Utils.SensorViewAdapter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.FileNotFoundException
@@ -107,7 +107,7 @@ internal class HSDConfigViewModel : ViewModel(){
         mHSDConfigFeature?.apply {
             addFeatureListener(mSTWINConfListener)
             enableNotification()
-            sendGETDevice()
+            sendGetCmd(HSDGetDeviceCmd())
         }
     }
 
@@ -120,18 +120,34 @@ internal class HSDConfigViewModel : ViewModel(){
 
     fun changeODRValue(sensor: Sensor, subSensor: SubSensorDescriptor, newOdrValue: Double) {
         Log.d("ConfigVM","onSubSensorODRChange ${sensor.id} -> ${subSensor.id} -> $newOdrValue")
+        val paramList = listOf(ODRParam(subSensor.id,newOdrValue))
+        val ssODRCmd = HSDSetSensorCmd(sensor.id, paramList)
+        mHSDConfigFeature!!.sendSetCmd(ssODRCmd)
+        _boardConfiguration.value!![sensor.id].sensorStatus.subSensorStatusList[subSensor.id].odr = newOdrValue
     }
 
     fun changeFullScale(sensor: Sensor, subSensor: SubSensorDescriptor, newFSValue: Double) {
         Log.d("ConfigVM","onSubSensorFSChange ${sensor.id} -> ${subSensor.id} -> $newFSValue")
+        val paramList = listOf(FSParam(subSensor.id,newFSValue))
+        val ssFSCmd = HSDSetSensorCmd(sensor.id, paramList)
+        mHSDConfigFeature!!.sendSetCmd(ssFSCmd)
+        _boardConfiguration.value!![sensor.id].sensorStatus.subSensorStatusList[subSensor.id].fs = newFSValue
     }
 
-    fun changeSampleForTimeStamp(sensor: Sensor, subSensor: SubSensorDescriptor, newSampleValue: Double) {
+    fun changeSampleForTimeStamp(sensor: Sensor, subSensor: SubSensorDescriptor, newSampleValue: Int) {
         Log.d("ConfigVM","onSubSensorSampleChange ${sensor.id} -> ${subSensor.id} -> $newSampleValue")
+        val paramList = listOf(SamplePerTSParam(subSensor.id,newSampleValue))
+        val ssSamplePerTSCmd = HSDSetSensorCmd(sensor.id, paramList)
+        mHSDConfigFeature!!.sendSetCmd(ssSamplePerTSCmd)
+        _boardConfiguration.value!![sensor.id].sensorStatus.subSensorStatusList[subSensor.id].samplesPerTs = newSampleValue
     }
 
     fun changeEnableState(sensor: Sensor, subSensor: SubSensorDescriptor, newState: Boolean) {
         Log.d("ConfigVM","onSubSensorEnableChange ${sensor.id} -> ${subSensor.id} -> $newState")
+        val paramList = listOf(IsActiveParam(subSensor.id,newState))
+        val ssIsActiveCmd = HSDSetSensorCmd(sensor.id, paramList)
+        mHSDConfigFeature!!.sendSetCmd(ssIsActiveCmd)
+        _boardConfiguration.value!![sensor.id].sensorStatus.subSensorStatusList[subSensor.id].isActive = newState
     }
 
 }

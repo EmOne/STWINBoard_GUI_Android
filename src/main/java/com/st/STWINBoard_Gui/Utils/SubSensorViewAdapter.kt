@@ -80,6 +80,7 @@ class SubSensorViewAdapter(
         }
 
         init {
+
             mOdrSelector.onUserSelectedItemListener = OnUserSelectedListener(object : AdapterView.OnItemSelectedListener{
                 override fun onNothingSelected(parent: AdapterView<*>?) { }
 
@@ -103,7 +104,7 @@ class SubSensorViewAdapter(
 
             mSampleTSValue.setOnEditorActionListener { v: TextView, actionId: Int, event: KeyEvent? ->
                 val subSensor = mSubSensor ?: return@setOnEditorActionListener false
-                val newValue = v.text.toString().toDoubleOrNull() ?: return@setOnEditorActionListener false
+                val newValue = v.text.toString().toIntOrNull() ?: return@setOnEditorActionListener false
                 when (actionId) {
                     EditorInfo.IME_ACTION_DONE-> {
                         onSubSensorSampleChange(sensor,subSensor,newValue)
@@ -130,8 +131,10 @@ class SubSensorViewAdapter(
 
         private fun setOdr(odrValues: List<Double>?, currentValue: Double?) {
             mOdrSelector.isEnabled = odrValues!=null
-            if(odrValues == null)
+            if(odrValues == null) {
+                mOdrSelector.visibility = View.GONE
                 return
+            }
 
             val selectedIndex = if(currentValue !=null) {
                 val index = odrValues.indexOf(currentValue)
@@ -149,10 +152,12 @@ class SubSensorViewAdapter(
             mOdrSelector.setSelection(selectedIndex)
         }
 
-        private fun setFS(fsValues: List<Int>?, currentValue: Int?) {
+        private fun setFS(fsValues: List<Double>?, currentValue: Double?) {
             mFsSelector.isEnabled = fsValues!=null
-            if(fsValues == null)
+            if(fsValues == null) {
+                mFsSelector.visibility = View.INVISIBLE;
                 return
+            }
 
             val selectedIndex = if(currentValue !=null) {
                 val index = fsValues.indexOf(currentValue)
@@ -186,8 +191,8 @@ class SubSensorViewAdapter(
         }
 
         private fun setSample(settings:SamplesPerTs,currentValue: Int?){
-            val errorMessage = mSampleTSLayout.context.getString(R.string.subSensor_sampleErrorFromat,settings.min,settings.max)
-            val inputChecker = CheckIntNumberRange(mSampleTSLayout, errorMessage, settings.min,
+            //val errorMessage = mSampleTSLayout.context.getString(R.string.subSensor_sampleErrorFromat,settings.min,settings.max)
+            val inputChecker = CheckIntNumberRange(mSampleTSLayout, R.string.subSensor_sampleErrorFromat, settings.min,
                     settings.max)
             mSampleTSValue.addTextChangedListener(inputChecker)
             val value = currentValue ?: settings.min

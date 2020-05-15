@@ -105,7 +105,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="TextView"
+            android:text="FS"
             app:layout_constraintStart_toStartOf="@+id/subSensor_odrLabel"
             app:layout_constraintTop_toBottomOf="@+id/subSensor_odrSelector" />
 
@@ -143,7 +143,7 @@
                 android:id="@+id/subSensor_sampleValue"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="hint"
+                android:hint="SamplesPerTs"
                 android:imeOptions="actionDone"
                 android:inputType="number"
                 android:singleLine="true" />
