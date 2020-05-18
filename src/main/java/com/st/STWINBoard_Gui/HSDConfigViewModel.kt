@@ -10,9 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.st.BlueSTSDK.Feature
 import com.st.BlueSTSDK.Features.highSpeedDataLog.FeatureHSDataLogConfig
 import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.*
-import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.Sensor
-import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.SubSensorDescriptor
-import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.SubSensorStatus
+import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.*
 import com.st.BlueSTSDK.Node
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -27,6 +25,24 @@ internal class HSDConfigViewModel : ViewModel(){
         ImpossibleReadFile,
         ImpossibleWriteFile,
         ImpossibleCreateFile
+    }
+
+    private var mCurrentConfig:List<Sensor> = emptyList()
+    private val _boardConfiguration = MutableLiveData<List<Sensor>>(emptyList())
+    val sensorsConfiguraiton:LiveData<List<Sensor>>
+        get() = _boardConfiguration
+
+    private var mHSDConfigFeature:FeatureHSDataLogConfig? = null
+    private val mSTWINConfListener = Feature.FeatureListener { f: Feature, sample: Feature.Sample? ->
+        if (sample == null)
+            return@FeatureListener
+
+        val deviceConf = FeatureHSDataLogConfig.getDeviceConfig(sample) ?: return@FeatureListener
+        val newConfiguration = deviceConf.sensors ?: return@FeatureListener
+        if(mCurrentConfig!=newConfiguration){
+            mCurrentConfig = newConfiguration
+            _boardConfiguration.postValue(mCurrentConfig)
+        }
     }
 
     private val _error = MutableLiveData<Error?>(null)
@@ -47,8 +63,13 @@ internal class HSDConfigViewModel : ViewModel(){
                     return@launch
                 }
                 val strData = stream.readBytes().toString(Charsets.UTF_8)
-                Log.d("ViewModel",strData)
                 stream.close()
+                val config = DeviceParser.extractSensors(strData)
+                if(config == null){
+                    _error.postValue(Error.InvalidFile)
+                    return@launch
+                }
+                applyNewConfig(config)
             }catch (e: FileNotFoundException){
                 e.printStackTrace()
                 _error.postValue(Error.FileNotFound)
@@ -57,8 +78,57 @@ internal class HSDConfigViewModel : ViewModel(){
                 _error.postValue(Error.ImpossibleReadFile)
             }
         }
+    }
 
+    private fun List<Sensor>.getSensorWithId(id:Int):Sensor? = find { it.id == id }
 
+    private fun applyNewConfig(newConfig: List<Sensor>) {
+        newConfig.forEach { localSensor ->
+            val currentSensor =  mCurrentConfig.getSensorWithId(localSensor.id) ?: return@forEach
+
+            if(currentSensor.sensorStatus != localSensor.sensorStatus){
+                //todo CHECK THE DESCRIPTION TO BE COMPATIBLE?
+                val updateCommand = buildSensorChangesCommand(localSensor.id,currentSensor,localSensor)
+                mHSDConfigFeature?.sendSetCmd(updateCommand)
+            }
+        }
+        mCurrentConfig = newConfig
+        _boardConfiguration.postValue(newConfig)
+    }
+
+    private fun buildSensorChangesCommand(id: Int, currentSensor: Sensor, newSensor: Sensor): HSDSetSensorCmd{
+        val subSensorChanges = mutableListOf<SubSensorStatusParam>()
+        newSensor.sensorDescriptor.subSensorDescriptors.forEach { subSensorDesc ->
+            val currentStatus = currentSensor.getSubSensorStatusForId(subSensorDesc.id) ?: return@forEach
+            val newStatus = newSensor.getSubSensorStatusForId(subSensorDesc.id) ?: return@forEach
+            if(currentStatus!=newStatus){
+                subSensorChanges.addAll(
+                        buildSubSensorStatusParamDiff(subSensorDesc.id,currentStatus,newStatus)
+                )
+            }
+        }
+        return HSDSetSensorCmd(id,subSensorChanges)
+    }
+
+    private fun buildSubSensorStatusParamDiff(subSensorId: Int,
+                                              currentSensor: SubSensorStatus, newSensor: SubSensorStatus):List<SubSensorStatusParam> {
+        val diff = mutableListOf<SubSensorStatusParam>()
+        if(newSensor.isActive != currentSensor.isActive){
+            diff.add(IsActiveParam(subSensorId,newSensor.isActive))
+        }
+        val odr = newSensor.odr
+        if(odr!=null && newSensor.odr != currentSensor.odr){
+            diff.add(ODRParam(subSensorId,odr))
+        }
+        val fs = newSensor.fs
+        if(fs!=null && newSensor.fs != currentSensor.fs){
+            diff.add(FSParam(subSensorId,fs))
+        }
+        val ts = newSensor.samplesPerTs
+        if(ts!=currentSensor.samplesPerTs){
+            diff.add(SamplePerTSParam(subSensorId,ts))
+        }
+        return diff
     }
 
     fun storeConfigToFile(file: Uri?, contentResolver: ContentResolver) {
@@ -73,7 +143,8 @@ internal class HSDConfigViewModel : ViewModel(){
                     _error.postValue(Error.ImpossibleWriteFile)
                     return@launch
                 }
-                stream.write("ciao".toByteArray(Charsets.UTF_8))
+                val jsonStr = DeviceParser.toJsonStr(mCurrentConfig)
+                stream.write(jsonStr.toByteArray(Charsets.UTF_8))
                 stream.close()
             }catch (e: FileNotFoundException){
                 e.printStackTrace()
@@ -82,24 +153,6 @@ internal class HSDConfigViewModel : ViewModel(){
                 e.printStackTrace()
                 _error.postValue(Error.ImpossibleWriteFile)
             }
-        }
-    }
-
-    private var currentConfig:List<Sensor> = emptyList()
-    private val _boardConfiguration = MutableLiveData<List<Sensor>>(emptyList())
-    val sensorsConfiguraiton:LiveData<List<Sensor>>
-        get() = _boardConfiguration
-
-    private var mHSDConfigFeature:FeatureHSDataLogConfig? = null
-    private val mSTWINConfListener = Feature.FeatureListener { f: Feature, sample: Feature.Sample? ->
-        if (sample == null)
-            return@FeatureListener
-
-        val deviceConf = FeatureHSDataLogConfig.getDeviceConfig(sample) ?: return@FeatureListener
-        val newConfiguration = deviceConf.sensors ?: return@FeatureListener
-        if(currentConfig!=newConfiguration){
-            currentConfig = newConfiguration
-            _boardConfiguration.postValue(currentConfig)
         }
     }
 
@@ -121,10 +174,8 @@ internal class HSDConfigViewModel : ViewModel(){
     }
 
     private fun getSubSensorStatus(sensorId:Int,subSensorId:Int): SubSensorStatus?{
-        return currentConfig.getOrNull(sensorId)
-                ?.sensorStatus
-                ?.subSensorStatusList
-                ?.getOrNull(subSensorId)
+        return mCurrentConfig.getSensorWithId(sensorId)
+                ?.getSubSensorStatusForId(subSensorId)
     }
 
     fun changeODRValue(sensor: Sensor, subSensor: SubSensorDescriptor, newOdrValue: Double) {
@@ -133,7 +184,7 @@ internal class HSDConfigViewModel : ViewModel(){
         val ssODRCmd = HSDSetSensorCmd(sensor.id, paramList)
         mHSDConfigFeature?.sendSetCmd(ssODRCmd)
         getSubSensorStatus(sensor.id,subSensor.id)?.odr = newOdrValue
-        _boardConfiguration.postValue(currentConfig)
+        _boardConfiguration.postValue(mCurrentConfig)
     }
 
     fun changeFullScale(sensor: Sensor, subSensor: SubSensorDescriptor, newFSValue: Double) {
@@ -142,7 +193,7 @@ internal class HSDConfigViewModel : ViewModel(){
         val ssFSCmd = HSDSetSensorCmd(sensor.id, paramList)
         mHSDConfigFeature?.sendSetCmd(ssFSCmd)
         getSubSensorStatus(sensor.id,subSensor.id)?.fs = newFSValue
-        _boardConfiguration.postValue(currentConfig)
+        _boardConfiguration.postValue(mCurrentConfig)
     }
 
     fun changeSampleForTimeStamp(sensor: Sensor, subSensor: SubSensorDescriptor, newSampleValue: Int) {
@@ -151,7 +202,7 @@ internal class HSDConfigViewModel : ViewModel(){
         val ssSamplePerTSCmd = HSDSetSensorCmd(sensor.id, paramList)
         mHSDConfigFeature?.sendSetCmd(ssSamplePerTSCmd)
         getSubSensorStatus(sensor.id,subSensor.id)?.samplesPerTs = newSampleValue
-        _boardConfiguration.postValue(currentConfig)
+        _boardConfiguration.postValue(mCurrentConfig)
     }
 
     fun changeEnableState(sensor: Sensor, subSensor: SubSensorDescriptor, newState: Boolean) {
@@ -160,7 +211,7 @@ internal class HSDConfigViewModel : ViewModel(){
         val ssIsActiveCmd = HSDSetSensorCmd(sensor.id, paramList)
         mHSDConfigFeature?.sendSetCmd(ssIsActiveCmd)
         getSubSensorStatus(sensor.id,subSensor.id)?.isActive = newState
-        _boardConfiguration.postValue(currentConfig)
+        _boardConfiguration.postValue(mCurrentConfig)
     }
 
 }

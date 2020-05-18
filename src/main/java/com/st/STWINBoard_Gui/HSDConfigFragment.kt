@@ -54,7 +54,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.st.BlueSTSDK.Manager
 import com.st.BlueSTSDK.Node
-import com.st.STWINBoard_Gui.Control.DeviceManagerInterface
 import com.st.STWINBoard_Gui.Utils.SensorViewAdapter
 import com.st.clab.stwin.gui.R
 
@@ -87,8 +86,9 @@ open class HSDConfigFragment : Fragment() {
 
 
     private fun requestConfigurationFile() {
-        val chooserFile = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-            addCategory(Intent.CATEGORY_DEFAULT)
+        val chooserFile = Intent(Intent.ACTION_GET_CONTENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("application/json"))
             type = PICKFILE_REQUEST_TYPE
         }
         val chooserTitle = getString(R.string.hsdl_configFileChooserTitle)
