@@ -11,4 +11,8 @@
     <string name="subSensor_type_press">Pressure</string>
     <string name="subSensor_type_mic">Microphone</string>
     <string name="subSensor_type_unknown">Unknown</string>
+    <string name="subSensor_fullScaleLabel">Full scale</string>
+    <string name="subSensor_fullScaleUnitFormat">( %s )</string>
+    <string name="subSensor_odrLabel">ODR</string>
+    <string name="subSensor_sampleTSHint">SamplesPerTs</string>
 </resources>

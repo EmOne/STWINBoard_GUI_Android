@@ -12,6 +12,7 @@ import com.st.BlueSTSDK.Features.highSpeedDataLog.FeatureHSDataLogConfig
 import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.*
 import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.Sensor
 import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.SubSensorDescriptor
+import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.SubSensorStatus
 import com.st.BlueSTSDK.Node
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -84,7 +85,7 @@ internal class HSDConfigViewModel : ViewModel(){
         }
     }
 
-    private val currentConfig:List<Sensor> = emptyList()
+    private var currentConfig:List<Sensor> = emptyList()
     private val _boardConfiguration = MutableLiveData<List<Sensor>>(emptyList())
     val sensorsConfiguraiton:LiveData<List<Sensor>>
         get() = _boardConfiguration
@@ -97,7 +98,8 @@ internal class HSDConfigViewModel : ViewModel(){
         val deviceConf = FeatureHSDataLogConfig.getDeviceConfig(sample) ?: return@FeatureListener
         val newConfiguration = deviceConf.sensors ?: return@FeatureListener
         if(currentConfig!=newConfiguration){
-            _boardConfiguration.postValue(newConfiguration)
+            currentConfig = newConfiguration
+            _boardConfiguration.postValue(currentConfig)
         }
     }
 
@@ -118,36 +120,47 @@ internal class HSDConfigViewModel : ViewModel(){
         }
     }
 
+    private fun getSubSensorStatus(sensorId:Int,subSensorId:Int): SubSensorStatus?{
+        return currentConfig.getOrNull(sensorId)
+                ?.sensorStatus
+                ?.subSensorStatusList
+                ?.getOrNull(subSensorId)
+    }
+
     fun changeODRValue(sensor: Sensor, subSensor: SubSensorDescriptor, newOdrValue: Double) {
         Log.d("ConfigVM","onSubSensorODRChange ${sensor.id} -> ${subSensor.id} -> $newOdrValue")
         val paramList = listOf(ODRParam(subSensor.id,newOdrValue))
         val ssODRCmd = HSDSetSensorCmd(sensor.id, paramList)
-        mHSDConfigFeature!!.sendSetCmd(ssODRCmd)
-        _boardConfiguration.value!![sensor.id].sensorStatus.subSensorStatusList[subSensor.id].odr = newOdrValue
+        mHSDConfigFeature?.sendSetCmd(ssODRCmd)
+        getSubSensorStatus(sensor.id,subSensor.id)?.odr = newOdrValue
+        _boardConfiguration.postValue(currentConfig)
     }
 
     fun changeFullScale(sensor: Sensor, subSensor: SubSensorDescriptor, newFSValue: Double) {
         Log.d("ConfigVM","onSubSensorFSChange ${sensor.id} -> ${subSensor.id} -> $newFSValue")
         val paramList = listOf(FSParam(subSensor.id,newFSValue))
         val ssFSCmd = HSDSetSensorCmd(sensor.id, paramList)
-        mHSDConfigFeature!!.sendSetCmd(ssFSCmd)
-        _boardConfiguration.value!![sensor.id].sensorStatus.subSensorStatusList[subSensor.id].fs = newFSValue
+        mHSDConfigFeature?.sendSetCmd(ssFSCmd)
+        getSubSensorStatus(sensor.id,subSensor.id)?.fs = newFSValue
+        _boardConfiguration.postValue(currentConfig)
     }
 
     fun changeSampleForTimeStamp(sensor: Sensor, subSensor: SubSensorDescriptor, newSampleValue: Int) {
         Log.d("ConfigVM","onSubSensorSampleChange ${sensor.id} -> ${subSensor.id} -> $newSampleValue")
         val paramList = listOf(SamplePerTSParam(subSensor.id,newSampleValue))
         val ssSamplePerTSCmd = HSDSetSensorCmd(sensor.id, paramList)
-        mHSDConfigFeature!!.sendSetCmd(ssSamplePerTSCmd)
-        _boardConfiguration.value!![sensor.id].sensorStatus.subSensorStatusList[subSensor.id].samplesPerTs = newSampleValue
+        mHSDConfigFeature?.sendSetCmd(ssSamplePerTSCmd)
+        getSubSensorStatus(sensor.id,subSensor.id)?.samplesPerTs = newSampleValue
+        _boardConfiguration.postValue(currentConfig)
     }
 
     fun changeEnableState(sensor: Sensor, subSensor: SubSensorDescriptor, newState: Boolean) {
         Log.d("ConfigVM","onSubSensorEnableChange ${sensor.id} -> ${subSensor.id} -> $newState")
         val paramList = listOf(IsActiveParam(subSensor.id,newState))
         val ssIsActiveCmd = HSDSetSensorCmd(sensor.id, paramList)
-        mHSDConfigFeature!!.sendSetCmd(ssIsActiveCmd)
-        _boardConfiguration.value!![sensor.id].sensorStatus.subSensorStatusList[subSensor.id].isActive = newState
+        mHSDConfigFeature?.sendSetCmd(ssIsActiveCmd)
+        getSubSensorStatus(sensor.id,subSensor.id)?.isActive = newState
+        _boardConfiguration.postValue(currentConfig)
     }
 
 }

@@ -65,8 +65,8 @@ class SubSensorViewAdapter(
         private val mOdrSelector:Spinner = itemView.findViewById(R.id.subSensor_odrSelector)
         private val mFsSelector:Spinner = itemView.findViewById(R.id.subSensor_fsSelector)
         private val mFsUnit:TextView = itemView.findViewById(R.id.subSensor_fsUnit)
-        private val mSampleTSValue:TextInputEditText = itemView.findViewById(R.id.subSensor_sampleValue)
-        private val mSampleTSLayout:TextInputLayout = itemView.findViewById(R.id.subSensor_sampleLayout)
+        private val mSampleTSValue:TextInputEditText = itemView.findViewById(R.id.subSensor_sampleTSValue)
+        private val mSampleTSLayout:TextInputLayout = itemView.findViewById(R.id.subSensor_sampleTSLayout)
 
         private var mSubSensor:SubSensorDescriptor? = null
         private var mSubSensorStatus:SubSensorStatus? = null
@@ -120,13 +120,21 @@ class SubSensorViewAdapter(
             mSubSensor = subSensor
             mSubSensorStatus = status
 
-            mFsUnit.text = subSensor.unit
             setSensorData(subSensor.sensorType)
 
             setEnableState(status.isActive)
             setOdr(subSensor.odr,status.odr)
-            setFS(subSensor.fs,status.fs)
+            setFullScale(subSensor.fs,status.fs)
+            setFullScaleUnit(subSensor.unit)
             setSample(subSensor.samplesPerTs,status.samplesPerTs)
+        }
+
+        private fun setFullScaleUnit(unit: String?) {
+            if (unit!= null)
+                mFsUnit.text = mFsUnit.context.getString(R.string.subSensor_fullScaleUnitFormat, unit)
+            else {
+                mFsUnit.text = ""
+            }
         }
 
         private fun setOdr(odrValues: List<Double>?, currentValue: Double?) {
@@ -152,7 +160,7 @@ class SubSensorViewAdapter(
             mOdrSelector.setSelection(selectedIndex)
         }
 
-        private fun setFS(fsValues: List<Double>?, currentValue: Double?) {
+        private fun setFullScale(fsValues: List<Double>?, currentValue: Double?) {
             mFsSelector.isEnabled = fsValues!=null
             if(fsValues == null) {
                 mFsSelector.visibility = View.INVISIBLE;

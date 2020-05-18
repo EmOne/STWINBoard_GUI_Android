@@ -105,7 +105,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="FS"
+            android:text="@string/subSensor_fullScaleLabel"
             app:layout_constraintStart_toStartOf="@+id/subSensor_odrLabel"
             app:layout_constraintTop_toBottomOf="@+id/subSensor_odrSelector" />
 
@@ -114,7 +114,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:text="ODR"
+            android:text="@string/subSensor_odrLabel"
             app:layout_constraintStart_toEndOf="@+id/subSensor_icon"
             app:layout_constraintTop_toTopOf="@+id/subSensor_icon" />
 
@@ -123,13 +123,14 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:text="TextView"
+            tools:text="mG"
             app:layout_constraintBaseline_toBaselineOf="@+id/subSensor_fullScaleLabel"
             app:layout_constraintEnd_toEndOf="@+id/subSensor_fsSelector"
             app:layout_constraintStart_toEndOf="@+id/subSensor_fullScaleLabel" />
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/subSensor_sampleLayout"
+            style="@style/BlueSTSDKInputTypeStyle"
+            android:id="@+id/subSensor_sampleTSLayout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
@@ -140,10 +141,10 @@
             app:layout_constraintTop_toBottomOf="@+id/subSensor_fsSelector">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/subSensor_sampleValue"
+                android:id="@+id/subSensor_sampleTSValue"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="SamplesPerTs"
+                android:hint="@string/subSensor_sampleTSHint"
                 android:imeOptions="actionDone"
                 android:inputType="number"
                 android:singleLine="true" />
@@ -153,7 +154,7 @@
             android:id="@+id/subSensor_paramViews"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:constraint_referenced_ids="subSensor_odrLabel,subSensor_fullScaleLabel,subSensor_fsSelector,subSensor_fsUnit,subSensor_odrSelector,subSensor_sampleLayout"/>
+            app:constraint_referenced_ids="subSensor_odrLabel,subSensor_fullScaleLabel,subSensor_fsSelector,subSensor_fsUnit,subSensor_odrSelector,subSensor_sampleTSLayout" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
