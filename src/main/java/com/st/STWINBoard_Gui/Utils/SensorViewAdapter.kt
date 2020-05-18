@@ -19,7 +19,7 @@ typealias OnSubSensorODRChange = (sensor:Sensor,subSensor: SubSensorDescriptor, 
 typealias OnSubSensorFullScaleChange = (sensor:Sensor,subSensor: SubSensorDescriptor, newFSValue:Double)->Unit
 typealias OnSubSensorSampleChange = (sensor:Sensor,subSensor: SubSensorDescriptor, newSampleValue:Int)->Unit
 
-class SensorViewAdapter(//Activity Context
+internal class SensorViewAdapter(
         private val onSubSubSensorEnableStatusChange: OnSubSensorEnableStatusChange,
         private val onSubSensorODRChange: OnSubSensorODRChange,
         private val onSubSensorFullScaleChange: OnSubSensorFullScaleChange,

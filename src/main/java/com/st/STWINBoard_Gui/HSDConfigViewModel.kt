@@ -214,4 +214,9 @@ internal class HSDConfigViewModel : ViewModel(){
         _boardConfiguration.postValue(mCurrentConfig)
     }
 
+    fun setCurrentConfAsDefault() {
+        Log.d("ConfigVM","set as default")
+
+    }
+
 }

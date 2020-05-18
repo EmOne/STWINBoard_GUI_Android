@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saveConf_title">Save Configuration Settings</string>
+    <string name="saveConf_save_locally">Save locally on the phone</string>
+
+    <string-array name="saveConf_choose">
+        <item>@string/saveConf_save_locally</item>
+        <item>@string/saveConf_asDefault</item>
+    </string-array>
+
+    <string name="saveConf_asDefault">Save permanently on the board</string>
+    <string name="saveConf_cancel">Cancel</string>
+    <string name="saveConf_save">Save</string>
+</resources>

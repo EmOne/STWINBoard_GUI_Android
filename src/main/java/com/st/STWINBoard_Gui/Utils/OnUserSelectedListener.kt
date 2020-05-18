@@ -5,7 +5,7 @@ import android.view.View
 import android.widget.AbsSpinner
 import android.widget.AdapterView
 
-class OnUserSelectedListener (private val callback:AdapterView.OnItemSelectedListener):
+internal class OnUserSelectedListener (private val callback:AdapterView.OnItemSelectedListener):
         AdapterView.OnItemSelectedListener,
         View.OnTouchListener {
     private var userSelect = false
@@ -27,7 +27,7 @@ class OnUserSelectedListener (private val callback:AdapterView.OnItemSelectedLis
 
 }
 
-var AbsSpinner.onUserSelectedItemListener:OnUserSelectedListener?
+internal var AbsSpinner.onUserSelectedItemListener:OnUserSelectedListener?
     get() = onItemSelectedListener as? OnUserSelectedListener
     set(value) {
         setOnTouchListener(value)

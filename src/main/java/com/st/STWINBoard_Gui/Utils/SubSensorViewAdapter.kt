@@ -15,7 +15,7 @@ import com.google.android.material.textfield.TextInputLayout
 import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.*
 import com.st.clab.stwin.gui.R
 
-class SubSensorViewAdapter(
+internal class SubSensorViewAdapter(
         private val sensor: Sensor,
         private val onSubSensorEnableStatusChange: OnSubSensorEnableStatusChange,
         private val onSubSensorODRChange: OnSubSensorODRChange,

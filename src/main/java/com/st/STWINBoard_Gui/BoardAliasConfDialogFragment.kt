@@ -42,11 +42,11 @@ internal class BoardAliasConfDialogFragment : DialogFragment(){
         dialogBuilder.apply {
             setTitle(R.string.aliasConf_title)
             setView(buildCustomView())
-            setPositiveButton(R.string.confDialog_set_button){ dialog, _ ->
+            setPositiveButton(R.string.confDialog_save){ dialog, _ ->
                 setBoardAlias()
                 dialog.dismiss()
             }
-            setNegativeButton(R.string.confDialog_cancel_button){ dialog, _ ->
+            setNegativeButton(R.string.confDialog_cancel){ dialog, _ ->
                 dialog.dismiss()
             }
         }

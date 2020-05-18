@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="hsd_save_locally">Save locally on the phone</string>
-    <string name="hsd_save_on_device">Save permanently on the board</string>
-    <string name="hsd_save">Save</string>
-
-    <string name="confDialog_set_button">Set</string>
-    <string name="confDialog_cancel_button">Cancel</string>
+    <string name="confDialog_cancel">Cancel</string>
+    <string name="confDialog_save">Save</string>
 </resources>

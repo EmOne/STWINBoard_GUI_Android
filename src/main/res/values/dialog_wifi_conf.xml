@@ -5,4 +5,5 @@
     <string name="wifiConf_password_hint">Password</string>
     <string name="wifiConf_enable_wifi">Enable Wi-Fi</string>
 
+
 </resources>

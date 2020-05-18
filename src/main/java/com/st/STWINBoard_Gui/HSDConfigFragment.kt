@@ -37,7 +37,6 @@
 package com.st.STWINBoard_Gui
 
 import android.app.Activity
-import android.app.Dialog
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
@@ -52,6 +51,7 @@ import androidx.lifecycle.Observer
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
+import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceParser
 import com.st.BlueSTSDK.Manager
 import com.st.BlueSTSDK.Node
 import com.st.STWINBoard_Gui.Utils.SensorViewAdapter
@@ -224,55 +224,7 @@ open class HSDConfigFragment : Fragment() {
     }
 
     private fun showSaveDialog() {
-        val dialog = Dialog(requireContext())
-        dialog.setCancelable(false)
-        dialog.setContentView(R.layout.hsd_save_dialog)
-        val localSwitch = dialog.findViewById<Switch>(R.id.hsd_save_local_switch)
-        val boardSwitch = dialog.findViewById<Switch>(R.id.hsd_save_board_switch)
-        val saveButton = dialog.findViewById<Button>(R.id.hsd_save_button)
-        localSwitch.setOnClickListener { view: View? ->
-            if (localSwitch.isChecked) {
-                saveButton.isEnabled = true
-            } else {
-                if (!boardSwitch.isChecked) {
-                    saveButton.isEnabled = false
-                }
-            }
-        }
-        boardSwitch.setOnClickListener { view: View? ->
-            if (boardSwitch.isChecked) {
-                saveButton.isEnabled = true
-            } else {
-                if (!localSwitch.isChecked) {
-                    saveButton.isEnabled = false
-                }
-            }
-        }
-        saveButton.setOnClickListener { view: View? ->
-            dialog.dismiss()
-            //todo THE CONFIG IS NOT SEND IF THE LOCAL SWICH IS ON
-            if (localSwitch.isChecked) {
-                val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
-                    addCategory(Intent.CATEGORY_OPENABLE)
-                    type = PICKFILE_REQUEST_TYPE
-                    putExtra(Intent.EXTRA_TITLE, DEFAULT_CONFI_NAME)
-                }
-                startActivityForResult(intent, CREATE_FILE_REQUEST_CODE)
-            }
-            if (boardSwitch.isChecked) {
-                //TODO send save config on board command (ToBeDefined)
-                sendConfigCompleteEvent()
-                Log.e("STWINConfigFragment", "Save Config on the board!")
-            }
-        }
-        val closeButton = dialog.findViewById<Button>(R.id.hsd_close_button)
-        closeButton.setOnClickListener { v: View? -> dialog.dismiss() }
-        dialog.show()
-    }
-
-    private fun sendConfigCompleteEvent(newConfig:String?=null){
-        LocalBroadcastManager.getInstance(requireContext())
-            .sendBroadcast(buildConfigCompletedEvent(newConfig))
+        HSDConfigSaveDialogFragment().show(childFragmentManager,"saveDialog")
     }
 
     companion object {
@@ -302,13 +254,14 @@ open class HSDConfigFragment : Fragment() {
         }
 
         fun extractSavedConfig(intent: Intent?):String?{
-            if(intent?.action == ACTION_CONFIG_COMPLETE){
+            return if(intent?.action == ACTION_CONFIG_COMPLETE){
                 intent.getStringExtra(ACTION_CONFIG_EXTRA)
+            }else{
+                null
             }
-            return null
         }
 
-        private fun buildConfigCompletedEvent(newConfig: String?):Intent{
+        internal fun buildConfigCompletedEvent(newConfig: String?):Intent{
             return Intent(ACTION_CONFIG_COMPLETE).apply {
                 if(newConfig!=null)
                     putExtra(ACTION_CONFIG_EXTRA, newConfig)

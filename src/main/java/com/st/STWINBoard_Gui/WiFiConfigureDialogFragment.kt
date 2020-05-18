@@ -47,11 +47,11 @@ internal class WiFiConfigureDialogFragment : DialogFragment(){
         dialogBuilder.apply {
             setTitle(R.string.wificonf_title)
             setView(buildCustomView())
-            setPositiveButton(R.string.confDialog_set_button){ dialog, _ ->
+            setPositiveButton(R.string.confDialog_save){ dialog, _ ->
                 sendWifiSetting()
                 dialog.dismiss()
             }
-            setNegativeButton(R.string.confDialog_cancel_button){ dialog, _ ->
+            setNegativeButton(R.string.confDialog_cancel){ dialog, _ ->
                 dialog.dismiss()
             }
         }

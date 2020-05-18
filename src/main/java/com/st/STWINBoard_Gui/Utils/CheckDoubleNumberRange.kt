@@ -10,7 +10,7 @@ import com.st.BlueSTSDK.gui.util.InputChecker.InputChecker
 * @param errorMessageId error to display if the user input is wrong
 * @param min min accepted value
 * @param max max accepted value */
-class CheckIntNumberRange (textInputLayout: TextInputLayout, errorMessage:Int,
+internal class CheckIntNumberRange (textInputLayout: TextInputLayout, errorMessage:Int,
     min: Int?,
     max: Int?) : InputChecker(textInputLayout, errorMessage) {
 
