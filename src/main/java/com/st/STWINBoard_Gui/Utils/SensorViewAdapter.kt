@@ -48,16 +48,12 @@ internal class SensorViewAdapter(
         holder.mSensor = s.sensor
         holder.mSensorName.text = s.sensor.name
         holder.mSensorId.text = s.sensor.id.toString()
-        if(holder.mSensorParamsLayout.visibility == View.VISIBLE) {
-            if (s.isCollapsed) {
-                holder.mSensorParamsLayout.visibility = View.GONE
-                holder.mSensorArrowBtn.setBackgroundResource(R.drawable.ic_arrow_down)
-            }
-        } else {
-            if (!s.isCollapsed) {
-                holder.mSensorParamsLayout.visibility = View.VISIBLE
-                holder.mSensorArrowBtn.setBackgroundResource(R.drawable.ic_arrow_up)
-            }
+        if(s.isCollapsed){
+            holder.mSensorParamsLayout.visibility = View.GONE
+            holder.mSensorArrowBtn.setBackgroundResource(R.drawable.ic_arrow_down)
+        }else{
+            holder.mSensorParamsLayout.visibility = View.VISIBLE
+            holder.mSensorArrowBtn.setBackgroundResource(R.drawable.ic_arrow_up)
         }
 
         val subSensorParamsAdapter = SubSensorViewAdapter(
@@ -73,26 +69,14 @@ internal class SensorViewAdapter(
     inner class ViewHolder(mCallback: SensorInteractionCallback, itemView: View) : RecyclerView.ViewHolder(itemView) {
         private var currentData: SensorViewData? = null
 
-        var mSensorCard: CardView
-        var mSensorCardMask: CardView
-        var mSensorName: TextView
-        var mSensorArrowBtn: ImageView
-        var mSensorId: TextView
-        var mSensorParamsLayout: LinearLayout
-        var mSensorParamListView: RecyclerView
-        var mSubSensorListView: RecyclerView
+        var mSensorName: TextView = itemView.findViewById(R.id.sensorName)
+        var mSensorArrowBtn: ImageView = itemView.findViewById(R.id.sensorArrowBtn)
+        var mSensorId: TextView = itemView.findViewById(R.id.sensorId)
+        var mSensorParamsLayout: LinearLayout = itemView.findViewById(R.id.sensor_param_layout)
+        var mSubSensorListView: RecyclerView = itemView.findViewById(R.id.subSensorList)
         var mSensor: Sensor? = null
 
         init {
-
-            mSensorCard = itemView.findViewById(R.id.sensor_card)
-            mSensorCardMask = itemView.findViewById(R.id.sensor_card_mask)
-            mSensorName = itemView.findViewById(R.id.sensorName)
-            mSensorArrowBtn = itemView.findViewById(R.id.sensorArrowBtn)
-            mSensorId = itemView.findViewById(R.id.sensorId)
-            mSensorParamsLayout = itemView.findViewById(R.id.sensor_param_layout)
-            mSensorParamListView = itemView.findViewById(R.id.sensorParamList)
-            mSubSensorListView = itemView.findViewById(R.id.subSensorList)
 
             mSensorArrowBtn.setOnClickListener {
                 val sensor = currentData ?: return@setOnClickListener
