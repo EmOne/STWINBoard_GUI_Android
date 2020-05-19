@@ -246,7 +246,7 @@ internal class HSDConfigViewModel : ViewModel(){
 
     private fun setCurrentConfAsDefault() {
         Log.d("ConfigVM","set as default")
-
+        mHSDConfigFeature?.sendControlCmd(HSDSaveCmd())
     }
 
     fun saveConfiguration(saveSettings: SaveSettings){
