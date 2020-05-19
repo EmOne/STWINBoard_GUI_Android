@@ -12,6 +12,7 @@ import com.st.BlueSTSDK.Features.highSpeedDataLog.FeatureHSDataLogConfig
 import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.*
 import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.*
 import com.st.BlueSTSDK.Node
+import com.st.STWINBoard_Gui.Utils.SaveSettings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.FileNotFoundException
@@ -48,6 +49,13 @@ internal class HSDConfigViewModel : ViewModel(){
     private val _error = MutableLiveData<Error?>(null)
     val error:LiveData<Error?>
         get() = _error
+
+    private val _savedConfiguration = MutableLiveData<List<Sensor>?>(null)
+    val savedConfuguration:LiveData<List<Sensor>?>
+        get() = _savedConfiguration
+
+    //the UI will flip this flag when it start the view to request the data
+    val requestFileLocation = MutableLiveData(false)
 
     fun loadConfigFromFile(file: Uri?, contentResolver: ContentResolver){
         if(file == null){
@@ -146,6 +154,7 @@ internal class HSDConfigViewModel : ViewModel(){
                 val jsonStr = DeviceParser.toJsonStr(mCurrentConfig)
                 stream.write(jsonStr.toByteArray(Charsets.UTF_8))
                 stream.close()
+                _savedConfiguration.postValue(mCurrentConfig)
             }catch (e: FileNotFoundException){
                 e.printStackTrace()
                 _error.postValue(Error.ImpossibleCreateFile)
@@ -214,9 +223,20 @@ internal class HSDConfigViewModel : ViewModel(){
         _boardConfiguration.postValue(mCurrentConfig)
     }
 
-    fun setCurrentConfAsDefault() {
+    private fun setCurrentConfAsDefault() {
         Log.d("ConfigVM","set as default")
 
+    }
+
+    fun saveConfiguration(saveSettings: SaveSettings){
+        if(saveSettings.setAsDefault){
+            setCurrentConfAsDefault()
+        }
+        if(saveSettings.storeLocalCopy){
+            requestFileLocation.postValue(true)
+        }else{
+            _savedConfiguration.postValue(mCurrentConfig)
+        }
     }
 
 }

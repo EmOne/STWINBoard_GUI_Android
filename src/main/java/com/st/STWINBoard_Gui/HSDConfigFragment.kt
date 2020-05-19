@@ -51,6 +51,7 @@ import androidx.lifecycle.Observer
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
+import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.Sensor
 import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceParser
 import com.st.BlueSTSDK.Manager
 import com.st.BlueSTSDK.Node
@@ -109,6 +110,12 @@ open class HSDConfigFragment : Fragment() {
                     viewModel.storeConfigToFile(fileUri,requireContext().contentResolver)
                 }
             }
+            SAVE_SETTINGS_REQUEST_CODE->{
+                if (resultCode == Activity.RESULT_OK) {
+                    val settings = HSDConfigSaveDialogFragment.extractSaveSettings(data) ?: return
+                    viewModel.saveConfiguration(settings)
+                }
+            }
             else -> super.onActivityResult(requestCode, resultCode, data)
         }
     }
@@ -158,6 +165,16 @@ open class HSDConfigFragment : Fragment() {
         viewModel.sensorsConfiguraiton.observe(viewLifecycleOwner, Observer {
             mSensorsAdapter.submitList(it)
         })
+
+        viewModel.savedConfuguration.observe(viewLifecycleOwner, Observer { conf ->
+            conf ?: return@Observer
+            sendConfigCompleteEvent(conf)
+        })
+        viewModel.requestFileLocation.observe(viewLifecycleOwner, Observer { askFile ->
+            if(askFile){
+                requestFileCreation()
+            }
+        })
     }
 
     private fun displayErrorMessage(error: HSDConfigViewModel.Error) {
@@ -181,7 +198,6 @@ open class HSDConfigFragment : Fragment() {
 
     override fun onStop() {
         super.onStop()
-        Log.d("HSDConf","STOP")
         val node = getNode()
         if(node!=null){
             disableNeedNotification(node)
@@ -224,14 +240,35 @@ open class HSDConfigFragment : Fragment() {
     }
 
     private fun showSaveDialog() {
-        HSDConfigSaveDialogFragment().show(childFragmentManager,"saveDialog")
+        val dialog = HSDConfigSaveDialogFragment()
+        dialog.setTargetFragment(null, SAVE_SETTINGS_REQUEST_CODE)
+        dialog.show(childFragmentManager,"saveDialog")
     }
+
+
+    private fun sendConfigCompleteEvent(newConf:List<Sensor>){
+        val newConfStr = DeviceParser.toJsonStr(newConf)
+        LocalBroadcastManager.getInstance(requireContext())
+                .sendBroadcast(buildConfigCompletedEvent(newConfStr))
+    }
+
+
+    private fun requestFileCreation(){
+        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = PICKFILE_REQUEST_TYPE
+            putExtra(Intent.EXTRA_TITLE, DEFAULT_CONFI_NAME)
+        }
+        viewModel.requestFileLocation.value = false
+        startActivityForResult(intent, CREATE_FILE_REQUEST_CODE)
+    }
+
 
     companion object {
         private val WIFI_CONFIG_FRAGMENT_TAG = HSDConfigFragment::class.java.name + ".WIFI_CONFIG_FRAGMENT"
         private val ALIAS_CONFIG_FRAGMENT_TAG = HSDConfigFragment::class.java.name + ".ALIAS_CONFIG_FRAGMENT"
         private const val PICKFILE_REQUEST_CODE = 7777
-        private const val PICKFILE_REQUEST_TYPE = "application/octet-stream"
+        private const val PICKFILE_REQUEST_TYPE = "application/json"
         private const val DEFAULT_CONFI_NAME = "STWIN_conf.json"
         private val NODE_TAG_EXTRA = HSDConfigFragment::class.java.name + ".NODE_TAG_EXTRA"
 
@@ -244,6 +281,7 @@ open class HSDConfigFragment : Fragment() {
         }
 
         private const val CREATE_FILE_REQUEST_CODE = 1
+        private const val SAVE_SETTINGS_REQUEST_CODE = 2
 
         private val ACTION_CONFIG_COMPLETE = HSDConfigFragment::class.java.name + ".ACTION_CONFIG_COMPLETE"
         private val ACTION_CONFIG_EXTRA = HSDConfigFragment::class.java.name + ".ACTION_CONFIG_EXTRA"
