@@ -10,9 +10,12 @@ import androidx.lifecycle.viewModelScope
 import com.st.BlueSTSDK.Feature
 import com.st.BlueSTSDK.Features.highSpeedDataLog.FeatureHSDataLogConfig
 import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.*
-import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.*
+import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.Sensor
+import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.SubSensorDescriptor
+import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.SubSensorStatus
 import com.st.BlueSTSDK.Node
 import com.st.STWINBoard_Gui.Utils.SaveSettings
+import com.st.STWINBoard_Gui.Utils.SensorViewData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.FileNotFoundException
@@ -28,9 +31,9 @@ internal class HSDConfigViewModel : ViewModel(){
         ImpossibleCreateFile
     }
 
-    private var mCurrentConfig:List<Sensor> = emptyList()
-    private val _boardConfiguration = MutableLiveData<List<Sensor>>(emptyList())
-    val sensorsConfiguraiton:LiveData<List<Sensor>>
+    private var mCurrentConfig = mutableListOf<SensorViewData>()
+    private val _boardConfiguration = MutableLiveData(mCurrentConfig.toList())
+    val sensorsConfiguraiton:LiveData<List<SensorViewData>>
         get() = _boardConfiguration
 
     private var mHSDConfigFeature:FeatureHSDataLogConfig? = null
@@ -39,11 +42,26 @@ internal class HSDConfigViewModel : ViewModel(){
             return@FeatureListener
 
         val deviceConf = FeatureHSDataLogConfig.getDeviceConfig(sample) ?: return@FeatureListener
-        val newConfiguration = deviceConf.sensors ?: return@FeatureListener
-        if(mCurrentConfig!=newConfiguration){
+        val newConfiguration = mutableListOf<SensorViewData>()
+        newConfiguration.addAll(deviceConf.sensors.map { it.toSensorViewData() })
+        if(mCurrentConfig != newConfiguration){
             mCurrentConfig = newConfiguration
-            _boardConfiguration.postValue(mCurrentConfig)
+            _boardConfiguration.postValue(mCurrentConfig.toList())
         }
+    }
+
+    private fun SensorViewData.toSensor(): Sensor {
+        return Sensor(this.sensor.id,
+                this.sensor.name,
+                this.sensor.sensorDescriptor,
+                this.sensor.sensorStatus)
+    }
+
+    private fun Sensor.toSensorViewData(): SensorViewData {
+        return SensorViewData(
+                sensor = this,
+                isCollapsed = true
+                )
     }
 
     private val _error = MutableLiveData<Error?>(null)
@@ -77,7 +95,9 @@ internal class HSDConfigViewModel : ViewModel(){
                     _error.postValue(Error.InvalidFile)
                     return@launch
                 }
-                applyNewConfig(config)
+                val newConfig = mutableListOf<SensorViewData>()
+                newConfig.addAll(config.map { it.toSensorViewData() })
+                applyNewConfig(newConfig)
             }catch (e: FileNotFoundException){
                 e.printStackTrace()
                 _error.postValue(Error.FileNotFound)
@@ -88,15 +108,15 @@ internal class HSDConfigViewModel : ViewModel(){
         }
     }
 
-    private fun List<Sensor>.getSensorWithId(id:Int):Sensor? = find { it.id == id }
+    private fun List<SensorViewData>.getSensorWithId(id:Int):SensorViewData? = find { it.sensor.id == id }
 
-    private fun applyNewConfig(newConfig: List<Sensor>) {
+    private fun applyNewConfig(newConfig: MutableList<SensorViewData>) {
         newConfig.forEach { localSensor ->
-            val currentSensor =  mCurrentConfig.getSensorWithId(localSensor.id) ?: return@forEach
+            val currentSensor =  mCurrentConfig.getSensorWithId(localSensor.sensor.id) ?: return@forEach
 
-            if(currentSensor.sensorStatus != localSensor.sensorStatus){
+            if(currentSensor.sensor.sensorStatus != localSensor.sensor.sensorStatus){
                 //todo CHECK THE DESCRIPTION TO BE COMPATIBLE?
-                val updateCommand = buildSensorChangesCommand(localSensor.id,currentSensor,localSensor)
+                val updateCommand = buildSensorChangesCommand(localSensor.sensor.id,currentSensor.sensor,localSensor.sensor)
                 mHSDConfigFeature?.sendSetCmd(updateCommand)
             }
         }
@@ -151,10 +171,11 @@ internal class HSDConfigViewModel : ViewModel(){
                     _error.postValue(Error.ImpossibleWriteFile)
                     return@launch
                 }
-                val jsonStr = DeviceParser.toJsonStr(mCurrentConfig)
+                val sensors = mCurrentConfig.map { it.toSensor() }
+                val jsonStr = DeviceParser.toJsonStr(sensors)
                 stream.write(jsonStr.toByteArray(Charsets.UTF_8))
                 stream.close()
-                _savedConfiguration.postValue(mCurrentConfig)
+                _savedConfiguration.postValue(sensors)
             }catch (e: FileNotFoundException){
                 e.printStackTrace()
                 _error.postValue(Error.ImpossibleCreateFile)
@@ -184,7 +205,7 @@ internal class HSDConfigViewModel : ViewModel(){
 
     private fun getSubSensorStatus(sensorId:Int,subSensorId:Int): SubSensorStatus?{
         return mCurrentConfig.getSensorWithId(sensorId)
-                ?.getSubSensorStatusForId(subSensorId)
+                ?.sensor?.getSubSensorStatusForId(subSensorId)
     }
 
     fun changeODRValue(sensor: Sensor, subSensor: SubSensorDescriptor, newOdrValue: Double) {
@@ -235,8 +256,28 @@ internal class HSDConfigViewModel : ViewModel(){
         if(saveSettings.storeLocalCopy){
             requestFileLocation.postValue(true)
         }else{
-            _savedConfiguration.postValue(mCurrentConfig)
+            _savedConfiguration.postValue(mCurrentConfig.map { it.toSensor() })
         }
+    }
+
+    private fun updateSensorConfig(newSensor: SensorViewData) {
+        val sensorIndex = mCurrentConfig.indexOfFirst {
+            it.sensor == newSensor.sensor
+        }
+        mCurrentConfig[sensorIndex] = newSensor
+        _boardConfiguration.postValue(mCurrentConfig.toList())
+    }
+
+    fun collapseSensor(selected: SensorViewData) {
+        Log.d("ConfigViewMode","select to: ${selected.sensor.name}")
+        val newSensor = selected.copy(isCollapsed = true)
+        updateSensorConfig(newSensor)
+    }
+
+    fun expandSensor(selected: SensorViewData) {
+        Log.d("ConfigViewMode","select to: ${selected.sensor.name}")
+        val newSensor = selected.copy(isCollapsed = false)
+        updateSensorConfig(newSensor)
     }
 
 }

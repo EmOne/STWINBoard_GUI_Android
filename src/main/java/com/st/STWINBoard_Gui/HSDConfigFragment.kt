@@ -56,6 +56,7 @@ import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceParser
 import com.st.BlueSTSDK.Manager
 import com.st.BlueSTSDK.Node
 import com.st.STWINBoard_Gui.Utils.SensorViewAdapter
+import com.st.STWINBoard_Gui.Utils.SensorViewData
 import com.st.clab.stwin.gui.R
 
 /**
@@ -72,6 +73,15 @@ open class HSDConfigFragment : Fragment() {
     private val viewModel by viewModels<HSDConfigViewModel>()
 
     private val mSensorsAdapter = SensorViewAdapter(
+            object : SensorViewAdapter.SensorInteractionCallback {
+                override fun onSensorCollapsed(selected: SensorViewData) {
+                    viewModel.collapseSensor(selected)
+                }
+
+                override fun onSensorExpanded(selected: SensorViewData) {
+                    viewModel.expandSensor(selected)
+                }
+            },
             onSubSensorODRChange = {sensor, subSensor, newOdrValue ->
                 viewModel.changeODRValue(sensor,subSensor,newOdrValue)
             },

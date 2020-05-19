@@ -3,8 +3,11 @@ package com.st.STWINBoard_Gui.Utils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.Animation
+import android.view.animation.Transformation
+import android.widget.Button
+import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.Switch
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.DiffUtil
@@ -14,32 +17,51 @@ import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.Sens
 import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.SubSensorDescriptor
 import com.st.clab.stwin.gui.R
 
+
 typealias OnSubSensorEnableStatusChange = (sensor:Sensor,subSensor: SubSensorDescriptor, newState:Boolean)->Unit
 typealias OnSubSensorODRChange = (sensor:Sensor,subSensor: SubSensorDescriptor, newOdrValue:Double)->Unit
 typealias OnSubSensorFullScaleChange = (sensor:Sensor,subSensor: SubSensorDescriptor, newFSValue:Double)->Unit
 typealias OnSubSensorSampleChange = (sensor:Sensor,subSensor: SubSensorDescriptor, newSampleValue:Int)->Unit
 
 internal class SensorViewAdapter(
+        private val mCallback: SensorInteractionCallback,
         private val onSubSubSensorEnableStatusChange: OnSubSensorEnableStatusChange,
         private val onSubSensorODRChange: OnSubSensorODRChange,
         private val onSubSensorFullScaleChange: OnSubSensorFullScaleChange,
         private val onSubSensorSampleChange: OnSubSensorSampleChange) :
-        ListAdapter<Sensor,SensorViewAdapter.ViewHolder>(SensorDiffCallback()) {
+        ListAdapter<SensorViewData,SensorViewAdapter.ViewHolder>(SensorDiffCallback()) {
+
+    interface SensorInteractionCallback {
+        fun onSensorCollapsed(selected: SensorViewData)
+        fun onSensorExpanded(selected: SensorViewData)
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val view = inflater.inflate(R.layout.item_sensor, parent, false)
-        return ViewHolder(view)
+        return ViewHolder(mCallback,view)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val s = getItem(position)
-        holder.mSensor = s
-        holder.mSensorName.text = s.name
-        holder.mSensorId.text = s.id.toString()
+        holder.bind(s)
+        holder.mSensor = s.sensor
+        holder.mSensorName.text = s.sensor.name
+        holder.mSensorId.text = s.sensor.id.toString()
+        if(holder.mSensorParamsLayout.visibility == View.VISIBLE) {
+            if (s.isCollapsed) {
+                holder.mSensorParamsLayout.visibility = View.GONE
+                holder.mSensorArrowBtn.setBackgroundResource(R.drawable.ic_arrow_down)
+            }
+        } else {
+            if (!s.isCollapsed) {
+                holder.mSensorParamsLayout.visibility = View.VISIBLE
+                holder.mSensorArrowBtn.setBackgroundResource(R.drawable.ic_arrow_up)
+            }
+        }
 
         val subSensorParamsAdapter = SubSensorViewAdapter(
-                s,
+                s.sensor,
                 onSubSubSensorEnableStatusChange,
                 onSubSensorODRChange,
                 onSubSensorFullScaleChange,
@@ -48,10 +70,13 @@ internal class SensorViewAdapter(
         holder.mSubSensorListView.adapter = subSensorParamsAdapter
     }
 
-    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class ViewHolder(mCallback: SensorInteractionCallback, itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private var currentData: SensorViewData? = null
+
         var mSensorCard: CardView
         var mSensorCardMask: CardView
-        var mSensorName: Switch
+        var mSensorName: TextView
+        var mSensorArrowBtn: ImageView
         var mSensorId: TextView
         var mSensorParamsLayout: LinearLayout
         var mSensorParamListView: RecyclerView
@@ -59,25 +84,39 @@ internal class SensorViewAdapter(
         var mSensor: Sensor? = null
 
         init {
+
             mSensorCard = itemView.findViewById(R.id.sensor_card)
             mSensorCardMask = itemView.findViewById(R.id.sensor_card_mask)
             mSensorName = itemView.findViewById(R.id.sensorName)
+            mSensorArrowBtn = itemView.findViewById(R.id.sensorArrowBtn)
             mSensorId = itemView.findViewById(R.id.sensorId)
             mSensorParamsLayout = itemView.findViewById(R.id.sensor_param_layout)
             mSensorParamListView = itemView.findViewById(R.id.sensorParamList)
             mSubSensorListView = itemView.findViewById(R.id.subSensorList)
+
+            mSensorArrowBtn.setOnClickListener {
+                val sensor = currentData ?: return@setOnClickListener
+                if(sensor.isCollapsed){
+                    mCallback.onSensorExpanded(sensor)
+                } else {
+                    mCallback.onSensorCollapsed(sensor)
+                }
+            }
+        }
+
+        fun bind(sensor: SensorViewData) {
+            currentData = sensor
         }
     }
-
 }
 
-private class SensorDiffCallback : DiffUtil.ItemCallback<Sensor>(){
-    override fun areItemsTheSame(oldItem: Sensor, newItem: Sensor): Boolean {
-        return oldItem.id == newItem.id
+private class SensorDiffCallback : DiffUtil.ItemCallback<SensorViewData>(){
+    override fun areItemsTheSame(oldItem: SensorViewData, newItem: SensorViewData): Boolean {
+        return oldItem.sensor.id == newItem.sensor.id
     }
 
-    override fun areContentsTheSame(oldItem: Sensor, newItem: Sensor): Boolean {
+    override fun areContentsTheSame(oldItem: SensorViewData, newItem: SensorViewData): Boolean {
         return oldItem == newItem
     }
-
 }
+
