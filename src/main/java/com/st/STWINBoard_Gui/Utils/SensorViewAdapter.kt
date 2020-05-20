@@ -3,13 +3,8 @@ package com.st.STWINBoard_Gui.Utils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.Animation
-import android.view.animation.Transformation
-import android.widget.Button
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -45,15 +40,14 @@ internal class SensorViewAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val s = getItem(position)
         holder.bind(s)
-        holder.mSensor = s.sensor
         holder.mSensorName.text = s.sensor.name
         holder.mSensorId.text = s.sensor.id.toString()
         if(s.isCollapsed){
-            holder.mSensorParamsLayout.visibility = View.GONE
-            holder.mSensorArrowBtn.setBackgroundResource(R.drawable.ic_arrow_down)
+            holder.mSubSensorListView.visibility = View.GONE
+            holder.mSensorArrowBtn.setBackgroundResource(R.drawable.ic_expand_view)
         }else{
-            holder.mSensorParamsLayout.visibility = View.VISIBLE
-            holder.mSensorArrowBtn.setBackgroundResource(R.drawable.ic_arrow_up)
+            holder.mSubSensorListView.visibility = View.VISIBLE
+            holder.mSensorArrowBtn.setBackgroundResource(R.drawable.ic_collaps_view)
         }
 
         val subSensorParamsAdapter = SubSensorViewAdapter(
@@ -69,16 +63,14 @@ internal class SensorViewAdapter(
     inner class ViewHolder(mCallback: SensorInteractionCallback, itemView: View) : RecyclerView.ViewHolder(itemView) {
         private var currentData: SensorViewData? = null
 
-        var mSensorName: TextView = itemView.findViewById(R.id.sensorName)
-        var mSensorArrowBtn: ImageView = itemView.findViewById(R.id.sensorArrowBtn)
-        var mSensorId: TextView = itemView.findViewById(R.id.sensorId)
-        var mSensorParamsLayout: LinearLayout = itemView.findViewById(R.id.sensor_param_layout)
-        var mSubSensorListView: RecyclerView = itemView.findViewById(R.id.subSensorList)
-        var mSensor: Sensor? = null
+        val mSensorName: TextView = itemView.findViewById(R.id.sensorItem_nameLabel)
+        val mSensorArrowBtn: ImageView = itemView.findViewById(R.id.sensorItem_expandImage)
+        val mSensorId: TextView = itemView.findViewById(R.id.sensorItem_idLabel)
+        val mSubSensorListView: RecyclerView = itemView.findViewById(R.id.sensorItem_subSensorList)
 
         init {
 
-            mSensorArrowBtn.setOnClickListener {
+            itemView.findViewById<View>(R.id.sensorItem_headerLayout).setOnClickListener {
                 val sensor = currentData ?: return@setOnClickListener
                 if(sensor.isCollapsed){
                     mCallback.onSensorExpanded(sensor)

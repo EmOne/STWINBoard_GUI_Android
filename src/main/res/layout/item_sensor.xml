@@ -36,28 +36,22 @@
   ~ OF SUCH DAMAGE.
   -->
 
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="0dp">
-
     <androidx.cardview.widget.CardView
-        android:id="@+id/sensor_card"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/sensorItem_card"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="16dp"
-        app:cardBackgroundColor="#FFFFFF"
         app:cardCornerRadius="8dp"
         app:cardElevation="8dp">
 
         <LinearLayout
-            android:id="@+id/sensor_main_layout"
+            android:id="@+id/sensorItem_mainLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal|center_vertical"
@@ -65,26 +59,27 @@
             android:orientation="vertical">
 
             <LinearLayout
+                android:id="@+id/sensorItem_headerLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:padding="5dp">
+                android:padding="8dp">
 
                 <TextView
-                    android:id="@+id/sensorId"
+                    android:id="@+id/sensorItem_idLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_gravity="center_vertical"
                     android:layout_marginEnd="8dp"
                     android:gravity="center_vertical|end"
-                    android:text="1"
+                    tools:text="1"
                     android:textAlignment="textEnd"
                     android:textColor="@color/colorPrimaryDark"
-                    android:textSize="16dp"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
 
                 <TextView
-                    android:id="@+id/sensorName"
+                    android:id="@+id/sensorItem_nameLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_gravity="center"
@@ -92,19 +87,18 @@
                     android:gravity="center"
                     android:layoutDirection="rtl"
                     android:switchPadding="16dp"
-                    android:text="IIS3DWB"
+                    tools:text="IIS3DWB"
                     android:textAlignment="center"
-                    android:textColor="@color/cardview_dark_background"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
                 <Space
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1" />
 
                 <ImageView
-                    android:id="@+id/sensorArrowBtn"
+                    android:id="@+id/sensorItem_expandImage"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:layout_gravity="center_vertical"
@@ -112,51 +106,16 @@
 
             </LinearLayout>
 
-            <LinearLayout
-                android:id="@+id/sensor_param_layout"
+            <androidx.recyclerview.widget.RecyclerView
                 android:visibility="gone"
+                tools:visibility="visible"
+                android:id="@+id/sensorItem_subSensorList"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical">
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/sensorParamList"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:padding="5dp"
-                    app:layoutManager="LinearLayoutManager"
-                    tools:itemCount="2" />
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/subSensorList"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    app:layoutManager="LinearLayoutManager"
-                    tools:itemCount="2"
-                    tools:listitem="@layout/item_sub_sensor"/>
-
-            </LinearLayout>
+                app:layoutManager="LinearLayoutManager"
+                tools:itemCount="2"
+                tools:listitem="@layout/item_sub_sensor"/>
 
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>
-    <androidx.cardview.widget.CardView
-        android:id="@+id/sensor_card_mask"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp"
-        app:cardBackgroundColor="@color/colorGrey"
-        app:cardCornerRadius="8dp"
-        app:cardElevation="8dp"
-        android:alpha="0.4"
-        android:background="@android:color/background_dark"
-        android:clickable="false"
-        android:focusable="false"
-        android:orientation="horizontal"
-        android:visibility="invisible">
-    </androidx.cardview.widget.CardView>
-
-</FrameLayout>
