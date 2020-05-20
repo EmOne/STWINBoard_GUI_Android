@@ -1,16 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.textfield.TextInputLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:paddingStart="@dimen/dialog_startPadding"
     android:paddingEnd="@dimen/dialog_endPadding"
     android:paddingTop="@dimen/dialog_topPadding"
-    android:paddingBottom="@dimen/dialog_bottomPadding">
+    android:paddingBottom="@dimen/dialog_bottomPadding"
+    android:orientation="vertical">
 
-    <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/aliasConf_alias_value"
+    <com.google.android.material.textfield.TextInputLayout
+        style="@style/BlueSTSDKInputTypeStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/aliasConf_alias_hint" />
-</com.google.android.material.textfield.TextInputLayout>
+        >
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/aliasConf_alias_value"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/aliasConf_alias_hint" />
+    </com.google.android.material.textfield.TextInputLayout>
+</LinearLayout>
