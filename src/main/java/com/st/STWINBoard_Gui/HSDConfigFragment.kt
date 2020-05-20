@@ -229,14 +229,14 @@ open class HSDConfigFragment : Fragment() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when(item.itemId){
-            R.id.menu_hsdl_wifiConf -> {
+            /*R.id.menu_hsdl_wifiConf -> {
                 val node = getNode()
                 if(node!=null) {
                     val wifSettings = WiFiConfigureDialogFragment.newInstance(node)
                     wifSettings.show(childFragmentManager, WIFI_CONFIG_FRAGMENT_TAG)
                 }
                 true
-            }
+            }*/
             R.id.menu_hsdl_changeAlias -> {
                 val node = getNode()
                 if(node!=null) {

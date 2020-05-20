@@ -37,10 +37,10 @@
   -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item
+    <!--<item
         android:id="@+id/menu_hsdl_wifiConf"
         android:title="@string/hsd_wi_fi_configuration"
-        android:showAsAction="never" />
+        android:showAsAction="never" />-->
 
     <item
         android:id="@+id/menu_hsdl_changeAlias"

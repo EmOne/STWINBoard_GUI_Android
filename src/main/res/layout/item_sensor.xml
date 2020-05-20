@@ -102,7 +102,7 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:layout_gravity="center_vertical"
-                    android:background="@drawable/ic_arrow_down" />
+                    android:background="@drawable/ic_collaps_view" />
 
             </LinearLayout>
 

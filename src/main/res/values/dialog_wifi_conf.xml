@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="wificonf_title">Wi-Fi Configuration</string>
-    <string name="wifiConf_ssid_hint">Ssid</string>
+    <string name="wifiConf_ssid_hint">SSID</string>
     <string name="wifiConf_password_hint">Password</string>
     <string name="wifiConf_enable_wifi">Enable Wi-Fi</string>
 
