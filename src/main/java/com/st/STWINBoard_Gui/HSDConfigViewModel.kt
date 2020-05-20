@@ -186,7 +186,9 @@ internal class HSDConfigViewModel : ViewModel(){
         mHSDConfigFeature?.apply {
             addFeatureListener(mSTWINConfListener)
             enableNotification()
-            sendGetCmd(HSDGetDeviceCmd())
+            if(mCurrentConfig.isEmpty()) {
+                sendGetCmd(HSDGetDeviceCmd())
+            }
         }
     }
 
