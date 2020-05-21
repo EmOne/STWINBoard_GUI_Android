@@ -20,7 +20,9 @@ internal class SubSensorViewAdapter(
         private val onSubSensorEnableStatusChange: OnSubSensorEnableStatusChange,
         private val onSubSensorODRChange: OnSubSensorODRChange,
         private val onSubSensorFullScaleChange: OnSubSensorFullScaleChange,
-        private val onSubSensorSampleChange: OnSubSensorSampleChange) : RecyclerView.Adapter<SubSensorViewAdapter.ViewHolder>() {
+        private val onSubSensorSampleChange: OnSubSensorSampleChange,
+        private val onSubSensorOpenMLCConf: OnSubSensorOpenMLCConf
+        ) : RecyclerView.Adapter<SubSensorViewAdapter.ViewHolder>() {
 
     //SubParam List
     private val mSubSensorList: List<SubSensorDescriptor> = sensor.sensorDescriptor.subSensorDescriptors
@@ -67,6 +69,8 @@ internal class SubSensorViewAdapter(
         private val mFsUnit:TextView = itemView.findViewById(R.id.subSensor_fsUnit)
         private val mSampleTSValue:TextInputEditText = itemView.findViewById(R.id.subSensor_sampleTSValue)
         private val mSampleTSLayout:TextInputLayout = itemView.findViewById(R.id.subSensor_sampleTSLayout)
+        private val mMLCConfigLayout:LinearLayout = itemView.findViewById(R.id.subSensor_MLCConfigLayout)
+        private val mMLCLoadButton:Button = itemView.findViewById(R.id.subSensor_MLCLoadButton)
 
         private var mSubSensor:SubSensorDescriptor? = null
         private var mSubSensorStatus:SubSensorStatus? = null
@@ -75,6 +79,7 @@ internal class SubSensorViewAdapter(
             override fun onCheckedChanged(buttonView: CompoundButton?, isChecked: Boolean) {
                 val subSensor = mSubSensor ?: return
                 displayParamViews(isChecked)
+                displayMLCSection(isChecked,subSensor.sensorType)
                 onSubSensorEnableStatusChange(sensor,subSensor,isChecked)
             }
         }
@@ -114,15 +119,20 @@ internal class SubSensorViewAdapter(
                 false
             }
 
+            mMLCLoadButton.setOnClickListener(object : View.OnClickListener {
+                override fun onClick(view: View?) {
+                    val subSensor = mSubSensor ?: return
+                    onSubSensorOpenMLCConf(sensor, subSensor)
+                }
+            })
+
         }
 
         fun bind(subSensor:SubSensorDescriptor, status: SubSensorStatus){
             mSubSensor = subSensor
             mSubSensorStatus = status
-
             setSensorData(subSensor.sensorType)
-
-            setEnableState(status.isActive)
+            setEnableState(status.isActive,subSensor.sensorType)
             setOdr(subSensor.odr,status.odr)
             setFullScale(subSensor.fs,status.fs)
             setFullScaleUnit(subSensor.unit)
@@ -183,11 +193,23 @@ internal class SubSensorViewAdapter(
             mFsSelector.setSelection(selectedIndex)
         }
 
-        private fun setEnableState(newState:Boolean){
+        private fun setEnableState(newState:Boolean,sensorType: SensorType){
             mEnabledSwitch.setOnCheckedChangeListener(null)
             mEnabledSwitch.isChecked = newState
             displayParamViews(newState)
+            displayMLCSection(newState,sensorType)
             mEnabledSwitch.setOnCheckedChangeListener(onCheckedChangeListener)
+        }
+
+        private fun displayMLCSection(showIt: Boolean, sensorType: SensorType){
+            if(showIt) {
+                if (sensorType == SensorType.MLC)
+                    mMLCConfigLayout.visibility = View.VISIBLE
+                else
+                    mMLCConfigLayout.visibility = View.GONE
+            } else {
+                mMLCConfigLayout.visibility = View.GONE
+            }
         }
 
         private fun displayParamViews(showIt:Boolean){
@@ -223,6 +245,7 @@ internal class SubSensorViewAdapter(
         SensorType.Humidity -> R.drawable.sensor_type_humidity
         SensorType.Pressure -> R.drawable.sensor_type_pressure
         SensorType.Microphone -> R.drawable.sensor_type_microphone
+        SensorType.MLC -> R.drawable.sensor_type_unknown
         SensorType.Unknown -> R.drawable.sensor_type_unknown
     }
 
@@ -235,6 +258,7 @@ internal class SubSensorViewAdapter(
         SensorType.Humidity -> R.string.subSensor_type_hum
         SensorType.Pressure -> R.string.subSensor_type_press
         SensorType.Microphone -> R.string.subSensor_type_mic
+        SensorType.MLC -> R.string.subSensor_type_mlc
         SensorType.Unknown -> R.string.subSensor_type_unknown
     }
 

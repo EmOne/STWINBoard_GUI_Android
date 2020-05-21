@@ -10,6 +10,7 @@
     <string name="subSensor_type_hum">Humidity</string>
     <string name="subSensor_type_press">Pressure</string>
     <string name="subSensor_type_mic">Microphone</string>
+    <string name="subSensor_type_mlc">MLC</string>
     <string name="subSensor_type_unknown">Unknown</string>
     <string name="subSensor_fullScaleLabel">Full scale</string>
     <string name="subSensor_fullScaleUnitFormat">( %s )</string>

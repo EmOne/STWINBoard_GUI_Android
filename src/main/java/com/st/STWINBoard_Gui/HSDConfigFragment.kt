@@ -52,6 +52,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.Sensor
+import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.SubSensorDescriptor
 import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceParser
 import com.st.BlueSTSDK.Manager
 import com.st.BlueSTSDK.Node
@@ -93,6 +94,10 @@ open class HSDConfigFragment : Fragment() {
             },
             onSubSubSensorEnableStatusChange = {sensor, subSensor, newState ->
                 viewModel.changeEnableState(sensor,subSensor,newState)
+            },
+            onSubSensorOpenMLCConf = {sensor, subSensor ->
+                viewModel.openLoadMLCConf(sensor,subSensor)
+                requestMLCConfigFile()
             })
 
 
@@ -106,12 +111,28 @@ open class HSDConfigFragment : Fragment() {
         startActivityForResult(Intent.createChooser(chooserFile, chooserTitle), PICKFILE_REQUEST_CODE)
     }
 
+    private fun requestMLCConfigFile() {
+        val chooserFile = Intent(Intent.ACTION_GET_CONTENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("application/*", "text/*"))//TODO make the right filter
+            type = PICKFILE_UCF_REQUEST_TYPE
+        }
+        val chooserTitle = getString(R.string.hsdl_configFileChooserTitle)
+        startActivityForResult( Intent.createChooser(chooserFile, chooserTitle), PICKFILE_UCF_REQUEST_CODE)
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when (requestCode) {
             PICKFILE_REQUEST_CODE -> {
                 val fileUri = data?.data
                 if (resultCode == Activity.RESULT_OK) {
                     viewModel.loadConfigFromFile(fileUri,requireContext().contentResolver)
+                }
+            }
+            PICKFILE_UCF_REQUEST_CODE -> {
+                val fileUri = data?.data
+                if (resultCode == Activity.RESULT_OK) {
+                    viewModel.loadUCFFromFile(fileUri,requireContext().contentResolver)
                 }
             }
             CREATE_FILE_REQUEST_CODE -> {
@@ -279,6 +300,8 @@ open class HSDConfigFragment : Fragment() {
         private val ALIAS_CONFIG_FRAGMENT_TAG = HSDConfigFragment::class.java.name + ".ALIAS_CONFIG_FRAGMENT"
         private const val PICKFILE_REQUEST_CODE = 7777
         private const val PICKFILE_REQUEST_TYPE = "application/json"
+        private const val PICKFILE_UCF_REQUEST_CODE = 7778
+        private const val PICKFILE_UCF_REQUEST_TYPE = "application/ucf"
         private const val DEFAULT_CONFI_NAME = "STWIN_conf.json"
         private val NODE_TAG_EXTRA = HSDConfigFragment::class.java.name + ".NODE_TAG_EXTRA"
 

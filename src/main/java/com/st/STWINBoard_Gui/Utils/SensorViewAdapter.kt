@@ -17,13 +17,15 @@ typealias OnSubSensorEnableStatusChange = (sensor:Sensor,subSensor: SubSensorDes
 typealias OnSubSensorODRChange = (sensor:Sensor,subSensor: SubSensorDescriptor, newOdrValue:Double)->Unit
 typealias OnSubSensorFullScaleChange = (sensor:Sensor,subSensor: SubSensorDescriptor, newFSValue:Double)->Unit
 typealias OnSubSensorSampleChange = (sensor:Sensor,subSensor: SubSensorDescriptor, newSampleValue:Int)->Unit
+typealias OnSubSensorOpenMLCConf = (sensor:Sensor,subSensor: SubSensorDescriptor)->Unit
 
 internal class SensorViewAdapter(
         private val mCallback: SensorInteractionCallback,
         private val onSubSubSensorEnableStatusChange: OnSubSensorEnableStatusChange,
         private val onSubSensorODRChange: OnSubSensorODRChange,
         private val onSubSensorFullScaleChange: OnSubSensorFullScaleChange,
-        private val onSubSensorSampleChange: OnSubSensorSampleChange) :
+        private val onSubSensorSampleChange: OnSubSensorSampleChange,
+        private val onSubSensorOpenMLCConf: OnSubSensorOpenMLCConf) :
         ListAdapter<SensorViewData,SensorViewAdapter.ViewHolder>(SensorDiffCallback()) {
 
     interface SensorInteractionCallback {
@@ -55,7 +57,8 @@ internal class SensorViewAdapter(
                 onSubSubSensorEnableStatusChange,
                 onSubSensorODRChange,
                 onSubSensorFullScaleChange,
-                onSubSensorSampleChange)
+                onSubSensorSampleChange,
+                onSubSensorOpenMLCConf)
 
         holder.mSubSensorListView.adapter = subSensorParamsAdapter
     }

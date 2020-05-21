@@ -31,6 +31,9 @@ internal class HSDConfigViewModel : ViewModel(){
         ImpossibleCreateFile
     }
 
+    private var mMLCsId = -1
+    private var mMLCssId = -1
+
     private var mCurrentConfig = mutableListOf<SensorViewData>()
     private val _boardConfiguration = MutableLiveData(mCurrentConfig.toList())
     val sensorsConfiguraiton:LiveData<List<SensorViewData>>
@@ -68,6 +71,7 @@ internal class HSDConfigViewModel : ViewModel(){
 
     //the UI will flip this flag when it start the view to request the data
     val requestFileLocation = MutableLiveData(false)
+
 
     fun loadConfigFromFile(file: Uri?, contentResolver: ContentResolver){
         if(file == null){
@@ -129,7 +133,7 @@ internal class HSDConfigViewModel : ViewModel(){
                 )
             }
         }
-        return HSDSetSensorCmd(id,subSensorChanges)
+        return HSDSetSensorCmd(null,id,subSensorChanges)
     }
 
     private fun buildSubSensorStatusParamDiff(subSensorId: Int,
@@ -207,7 +211,7 @@ internal class HSDConfigViewModel : ViewModel(){
     fun changeODRValue(sensor: Sensor, subSensor: SubSensorDescriptor, newOdrValue: Double) {
         Log.d("ConfigVM","onSubSensorODRChange ${sensor.id} -> ${subSensor.id} -> $newOdrValue")
         val paramList = listOf(ODRParam(subSensor.id,newOdrValue))
-        val ssODRCmd = HSDSetSensorCmd(sensor.id, paramList)
+        val ssODRCmd = HSDSetSensorCmd(null, sensor.id, paramList)
         mHSDConfigFeature?.sendSetCmd(ssODRCmd)
         getSubSensorStatus(sensor.id,subSensor.id)?.odr = newOdrValue
         _boardConfiguration.postValue(mCurrentConfig.toList())
@@ -216,7 +220,7 @@ internal class HSDConfigViewModel : ViewModel(){
     fun changeFullScale(sensor: Sensor, subSensor: SubSensorDescriptor, newFSValue: Double) {
         Log.d("ConfigVM","onSubSensorFSChange ${sensor.id} -> ${subSensor.id} -> $newFSValue")
         val paramList = listOf(FSParam(subSensor.id,newFSValue))
-        val ssFSCmd = HSDSetSensorCmd(sensor.id, paramList)
+        val ssFSCmd = HSDSetSensorCmd(null, sensor.id, paramList)
         mHSDConfigFeature?.sendSetCmd(ssFSCmd)
         getSubSensorStatus(sensor.id,subSensor.id)?.fs = newFSValue
         _boardConfiguration.postValue(mCurrentConfig.toList())
@@ -225,7 +229,7 @@ internal class HSDConfigViewModel : ViewModel(){
     fun changeSampleForTimeStamp(sensor: Sensor, subSensor: SubSensorDescriptor, newSampleValue: Int) {
         Log.d("ConfigVM","onSubSensorSampleChange ${sensor.id} -> ${subSensor.id} -> $newSampleValue")
         val paramList = listOf(SamplePerTSParam(subSensor.id,newSampleValue))
-        val ssSamplePerTSCmd = HSDSetSensorCmd(sensor.id, paramList)
+        val ssSamplePerTSCmd = HSDSetSensorCmd(null, sensor.id, paramList)
         mHSDConfigFeature?.sendSetCmd(ssSamplePerTSCmd)
         getSubSensorStatus(sensor.id,subSensor.id)?.samplesPerTs = newSampleValue
         _boardConfiguration.postValue(mCurrentConfig.toList())
@@ -234,10 +238,45 @@ internal class HSDConfigViewModel : ViewModel(){
     fun changeEnableState(sensor: Sensor, subSensor: SubSensorDescriptor, newState: Boolean) {
         Log.d("ConfigVM","onSubSensorEnableChange ${sensor.id} -> ${subSensor.id} -> $newState")
         val paramList = listOf(IsActiveParam(subSensor.id,newState))
-        val ssIsActiveCmd = HSDSetSensorCmd(sensor.id, paramList)
+        val ssIsActiveCmd = HSDSetSensorCmd(null, sensor.id, paramList)
         mHSDConfigFeature?.sendSetCmd(ssIsActiveCmd)
         getSubSensorStatus(sensor.id,subSensor.id)?.isActive = newState
         _boardConfiguration.postValue(mCurrentConfig.toList())
+    }
+
+    fun openLoadMLCConf(sensor: Sensor, subSensor: SubSensorDescriptor){
+        Log.d("ConfigVM","onSubSensorEnableChange ${sensor.id} -> ${subSensor.id} -> openMLCConf")
+        mMLCsId = sensor.id
+        mMLCssId = subSensor.id
+    }
+
+    fun loadUCFFromFile(file: Uri?, contentResolver: ContentResolver){
+        if(file == null){
+            _error.postValue(Error.InvalidFile)
+            return
+        }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val stream = contentResolver.openInputStream(file)
+                if(stream==null){
+                    _error.postValue(Error.ImpossibleReadFile)
+                    return@launch
+                }
+                val lineList = mutableListOf<String>()
+                stream.bufferedReader(Charsets.UTF_8).useLines { lines -> lines.forEach { if(it.take(2) != "--") lineList.add(it) } }
+                val strData = lineList.joinToString("") {it.replace("\\s+".toRegex(),"").drop(2)}
+                stream.close()
+                val paramList = listOf(MLCConfigParam(mMLCssId,strData.length/2,strData))
+                mHSDConfigFeature?.sendSetCmd(HSDSetSensorCmd("mlc_config",mMLCsId,paramList))
+            }catch (e: FileNotFoundException){
+                e.printStackTrace()
+                _error.postValue(Error.FileNotFound)
+            }catch (e: IOError){
+                e.printStackTrace()
+                _error.postValue(Error.ImpossibleReadFile)
+            }
+        }
     }
 
     private fun setCurrentConfAsDefault() {

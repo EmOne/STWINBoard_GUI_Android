@@ -135,7 +135,6 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="@+id/subSensor_fsSelector"
             app:layout_constraintStart_toStartOf="@+id/subSensor_fullScaleLabel"
             app:layout_constraintTop_toBottomOf="@+id/subSensor_fsSelector">
@@ -156,6 +155,35 @@
             android:layout_height="wrap_content"
             app:constraint_referenced_ids="subSensor_odrLabel,subSensor_fullScaleLabel,subSensor_fsSelector,subSensor_fsUnit,subSensor_odrSelector,subSensor_sampleTSLayout" />
 
+        <LinearLayout
+            android:id="@+id/subSensor_MLCConfigLayout"
+            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            app:layout_constraintEnd_toEndOf="@+id/subSensor_sampleTSLayout"
+            app:layout_constraintStart_toStartOf="@+id/subSensor_sampleTSLayout"
+            app:layout_constraintTop_toBottomOf="@+id/subSensor_sampleTSLayout">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="MLC config" />
+
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <Button
+                android:id="@+id/subSensor_MLCLoadButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="LOAD"/>
+
+
+        </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </FrameLayout>
