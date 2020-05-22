@@ -23,17 +23,6 @@ import java.io.IOError
 
 internal class HSDConfigViewModel : ViewModel(){
 
-    enum class Error{
-        InvalidFile,
-        FileNotFound,
-        ImpossibleReadFile,
-        ImpossibleWriteFile,
-        ImpossibleCreateFile
-    }
-
-    private var mMLCsId = -1
-    private var mMLCssId = -1
-
     private var mCurrentConfig = mutableListOf<SensorViewData>()
     private val _boardConfiguration = MutableLiveData(mCurrentConfig.toList())
     val sensorsConfiguraiton:LiveData<List<SensorViewData>>
@@ -61,8 +50,8 @@ internal class HSDConfigViewModel : ViewModel(){
                 )
     }
 
-    private val _error = MutableLiveData<Error?>(null)
-    val error:LiveData<Error?>
+    private val _error = MutableLiveData<IOConfError?>(null)
+    val error:LiveData<IOConfError?>
         get() = _error
 
     private val _savedConfiguration = MutableLiveData<List<Sensor>?>(null)
@@ -75,7 +64,7 @@ internal class HSDConfigViewModel : ViewModel(){
 
     fun loadConfigFromFile(file: Uri?, contentResolver: ContentResolver){
         if(file == null){
-            _error.postValue(Error.InvalidFile)
+            _error.postValue(IOConfError.InvalidFile)
             return
         }
 
@@ -83,14 +72,14 @@ internal class HSDConfigViewModel : ViewModel(){
             try {
                 val stream = contentResolver.openInputStream(file)
                 if(stream==null){
-                    _error.postValue(Error.ImpossibleReadFile)
+                    _error.postValue(IOConfError.ImpossibleReadFile)
                     return@launch
                 }
                 val strData = stream.readBytes().toString(Charsets.UTF_8)
                 stream.close()
                 val config = DeviceParser.extractSensors(strData)
                 if(config == null){
-                    _error.postValue(Error.InvalidFile)
+                    _error.postValue(IOConfError.InvalidFile)
                     return@launch
                 }
                 val newConfig = mutableListOf<SensorViewData>()
@@ -98,10 +87,10 @@ internal class HSDConfigViewModel : ViewModel(){
                 applyNewConfig(newConfig)
             }catch (e: FileNotFoundException){
                 e.printStackTrace()
-                _error.postValue(Error.FileNotFound)
+                _error.postValue(IOConfError.FileNotFound)
             }catch (e: IOError){
                 e.printStackTrace()
-                _error.postValue(Error.ImpossibleReadFile)
+                _error.postValue(IOConfError.ImpossibleReadFile)
             }
         }
     }
@@ -133,7 +122,7 @@ internal class HSDConfigViewModel : ViewModel(){
                 )
             }
         }
-        return HSDSetSensorCmd(null,id,subSensorChanges)
+        return HSDSetSensorCmd(id,subSensorChanges)
     }
 
     private fun buildSubSensorStatusParamDiff(subSensorId: Int,
@@ -159,14 +148,14 @@ internal class HSDConfigViewModel : ViewModel(){
 
     fun storeConfigToFile(file: Uri?, contentResolver: ContentResolver) {
         if(file == null){
-            _error.postValue(Error.InvalidFile)
+            _error.postValue(IOConfError.InvalidFile)
             return
         }
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val stream = contentResolver.openOutputStream(file)
                 if(stream==null){
-                    _error.postValue(Error.ImpossibleWriteFile)
+                    _error.postValue(IOConfError.ImpossibleWriteFile)
                     return@launch
                 }
                 val sensors = mCurrentConfig.map { it.sensor }
@@ -176,10 +165,10 @@ internal class HSDConfigViewModel : ViewModel(){
                 _savedConfiguration.postValue(sensors)
             }catch (e: FileNotFoundException){
                 e.printStackTrace()
-                _error.postValue(Error.ImpossibleCreateFile)
+                _error.postValue(IOConfError.ImpossibleCreateFile)
             }catch (e:IOError){
                 e.printStackTrace()
-                _error.postValue(Error.ImpossibleWriteFile)
+                _error.postValue(IOConfError.ImpossibleWriteFile)
             }
         }
     }
@@ -211,7 +200,7 @@ internal class HSDConfigViewModel : ViewModel(){
     fun changeODRValue(sensor: Sensor, subSensor: SubSensorDescriptor, newOdrValue: Double) {
         Log.d("ConfigVM","onSubSensorODRChange ${sensor.id} -> ${subSensor.id} -> $newOdrValue")
         val paramList = listOf(ODRParam(subSensor.id,newOdrValue))
-        val ssODRCmd = HSDSetSensorCmd(null, sensor.id, paramList)
+        val ssODRCmd = HSDSetSensorCmd( sensor.id, paramList)
         mHSDConfigFeature?.sendSetCmd(ssODRCmd)
         getSubSensorStatus(sensor.id,subSensor.id)?.odr = newOdrValue
         _boardConfiguration.postValue(mCurrentConfig.toList())
@@ -220,7 +209,7 @@ internal class HSDConfigViewModel : ViewModel(){
     fun changeFullScale(sensor: Sensor, subSensor: SubSensorDescriptor, newFSValue: Double) {
         Log.d("ConfigVM","onSubSensorFSChange ${sensor.id} -> ${subSensor.id} -> $newFSValue")
         val paramList = listOf(FSParam(subSensor.id,newFSValue))
-        val ssFSCmd = HSDSetSensorCmd(null, sensor.id, paramList)
+        val ssFSCmd = HSDSetSensorCmd(sensor.id, paramList)
         mHSDConfigFeature?.sendSetCmd(ssFSCmd)
         getSubSensorStatus(sensor.id,subSensor.id)?.fs = newFSValue
         _boardConfiguration.postValue(mCurrentConfig.toList())
@@ -229,7 +218,7 @@ internal class HSDConfigViewModel : ViewModel(){
     fun changeSampleForTimeStamp(sensor: Sensor, subSensor: SubSensorDescriptor, newSampleValue: Int) {
         Log.d("ConfigVM","onSubSensorSampleChange ${sensor.id} -> ${subSensor.id} -> $newSampleValue")
         val paramList = listOf(SamplePerTSParam(subSensor.id,newSampleValue))
-        val ssSamplePerTSCmd = HSDSetSensorCmd(null, sensor.id, paramList)
+        val ssSamplePerTSCmd = HSDSetSensorCmd(sensor.id, paramList)
         mHSDConfigFeature?.sendSetCmd(ssSamplePerTSCmd)
         getSubSensorStatus(sensor.id,subSensor.id)?.samplesPerTs = newSampleValue
         _boardConfiguration.postValue(mCurrentConfig.toList())
@@ -238,45 +227,10 @@ internal class HSDConfigViewModel : ViewModel(){
     fun changeEnableState(sensor: Sensor, subSensor: SubSensorDescriptor, newState: Boolean) {
         Log.d("ConfigVM","onSubSensorEnableChange ${sensor.id} -> ${subSensor.id} -> $newState")
         val paramList = listOf(IsActiveParam(subSensor.id,newState))
-        val ssIsActiveCmd = HSDSetSensorCmd(null, sensor.id, paramList)
+        val ssIsActiveCmd = HSDSetSensorCmd(sensor.id, paramList)
         mHSDConfigFeature?.sendSetCmd(ssIsActiveCmd)
         getSubSensorStatus(sensor.id,subSensor.id)?.isActive = newState
         _boardConfiguration.postValue(mCurrentConfig.toList())
-    }
-
-    fun openLoadMLCConf(sensor: Sensor, subSensor: SubSensorDescriptor){
-        Log.d("ConfigVM","onSubSensorEnableChange ${sensor.id} -> ${subSensor.id} -> openMLCConf")
-        mMLCsId = sensor.id
-        mMLCssId = subSensor.id
-    }
-
-    fun loadUCFFromFile(file: Uri?, contentResolver: ContentResolver){
-        if(file == null){
-            _error.postValue(Error.InvalidFile)
-            return
-        }
-
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val stream = contentResolver.openInputStream(file)
-                if(stream==null){
-                    _error.postValue(Error.ImpossibleReadFile)
-                    return@launch
-                }
-                val lineList = mutableListOf<String>()
-                stream.bufferedReader(Charsets.UTF_8).useLines { lines -> lines.forEach { if(it.take(2) != "--") lineList.add(it) } }
-                val strData = lineList.joinToString("") {it.replace("\\s+".toRegex(),"").drop(2)}
-                stream.close()
-                val paramList = listOf(MLCConfigParam(mMLCssId,strData.length/2,strData))
-                mHSDConfigFeature?.sendSetCmd(HSDSetSensorCmd("mlc_config",mMLCsId,paramList))
-            }catch (e: FileNotFoundException){
-                e.printStackTrace()
-                _error.postValue(Error.FileNotFound)
-            }catch (e: IOError){
-                e.printStackTrace()
-                _error.postValue(Error.ImpossibleReadFile)
-            }
-        }
     }
 
     private fun setCurrentConfAsDefault() {

@@ -40,7 +40,6 @@ import android.app.Activity
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
@@ -52,7 +51,6 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.Sensor
-import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.SubSensorDescriptor
 import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceParser
 import com.st.BlueSTSDK.Manager
 import com.st.BlueSTSDK.Node
@@ -72,6 +70,7 @@ open class HSDConfigFragment : Fragment() {
     private var mDataTransferAnimation: Animation? = null
 
     private val viewModel by viewModels<HSDConfigViewModel>()
+    private val loadMLCViewModel by viewModels<HSDMLCConfigViewModel>()
 
     private val mSensorsAdapter = SensorViewAdapter(
             object : SensorViewAdapter.SensorInteractionCallback {
@@ -96,7 +95,7 @@ open class HSDConfigFragment : Fragment() {
                 viewModel.changeEnableState(sensor,subSensor,newState)
             },
             onSubSensorOpenMLCConf = {sensor, subSensor ->
-                viewModel.openLoadMLCConf(sensor,subSensor)
+                loadMLCViewModel.openLoadMLCConf(sensor,subSensor)
                 requestMLCConfigFile()
             })
 
@@ -132,7 +131,7 @@ open class HSDConfigFragment : Fragment() {
             PICKFILE_UCF_REQUEST_CODE -> {
                 val fileUri = data?.data
                 if (resultCode == Activity.RESULT_OK) {
-                    viewModel.loadUCFFromFile(fileUri,requireContext().contentResolver)
+                    loadMLCViewModel.loadUCFFromFile(fileUri,requireContext().contentResolver)
                 }
             }
             CREATE_FILE_REQUEST_CODE -> {
@@ -208,7 +207,7 @@ open class HSDConfigFragment : Fragment() {
         })
     }
 
-    private fun displayErrorMessage(error: HSDConfigViewModel.Error) {
+    private fun displayErrorMessage(error: IOConfError) {
         Snackbar.make(requireView(),error.toStringRes,Snackbar.LENGTH_SHORT)
                 .show()
     }
@@ -237,6 +236,7 @@ open class HSDConfigFragment : Fragment() {
 
     fun enableNeededNotification(node: Node) {
         viewModel.enableNotificationFromNode(node)
+        loadMLCViewModel.attachTo(node)
     }
 
      fun disableNeedNotification(node: Node) {
@@ -341,13 +341,13 @@ open class HSDConfigFragment : Fragment() {
 
     }
 
-    private val HSDConfigViewModel.Error.toStringRes:Int
+    private val IOConfError.toStringRes:Int
         get() = when(this){
-            HSDConfigViewModel.Error.InvalidFile -> R.string.hsdl_error_invalidFile
-            HSDConfigViewModel.Error.FileNotFound -> R.string.hsdl_error_fileNotFound
-            HSDConfigViewModel.Error.ImpossibleReadFile -> R.string.hsdl_error_readError
-            HSDConfigViewModel.Error.ImpossibleWriteFile -> R.string.hsdl_error_writeError
-            HSDConfigViewModel.Error.ImpossibleCreateFile -> R.string.hsdl_error_createError
+            IOConfError.InvalidFile -> R.string.hsdl_error_invalidFile
+            IOConfError.FileNotFound -> R.string.hsdl_error_fileNotFound
+            IOConfError.ImpossibleReadFile -> R.string.hsdl_error_readError
+            IOConfError.ImpossibleWriteFile -> R.string.hsdl_error_writeError
+            IOConfError.ImpossibleCreateFile -> R.string.hsdl_error_createError
         }
 
 }

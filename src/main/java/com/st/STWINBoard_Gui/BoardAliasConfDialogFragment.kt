@@ -44,7 +44,6 @@ internal class BoardAliasConfDialogFragment : DialogFragment(){
             setView(buildCustomView())
             setPositiveButton(R.string.confDialog_save){ dialog, _ ->
                 setBoardAlias()
-                dialog.dismiss()
             }
             setNegativeButton(R.string.confDialog_cancel){ dialog, _ ->
                 dialog.dismiss()
@@ -60,7 +59,7 @@ internal class BoardAliasConfDialogFragment : DialogFragment(){
     private fun setBoardAlias() {
         val configFeature = node?.getFeature(FeatureHSDataLogConfig::class.java)
         val name = mBoardName?.text ?: return
-        configFeature?.sendSetCmd(HSDSetDeviceAliasCmd(name.toString()))
+        configFeature?.sendSetCmd(HSDSetDeviceAliasCmd(name.toString()), Runnable { dismiss() })
     }
 
 

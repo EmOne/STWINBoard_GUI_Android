@@ -65,13 +65,11 @@ internal class WiFiConfigureDialogFragment : DialogFragment(){
 
     private fun sendWifiSetting() {
         val configFeature = node?.getFeature(FeatureHSDataLogConfig::class.java)
-        /*val settings = WifSettings(
-                enable = mEnableWifi?.isChecked ?: false,
-                ssid = mSSIDText?.text,
-                password = mPasswordText?.text
-        )*/
-        //configFeature?.setWifiSettings(settings)
-        configFeature?.sendSetCmd(HSDSetWiFiCmd(mSSIDText?.text.toString(),mPasswordText?.text.toString(),mEnableWifi?.isChecked ?: false))
+        val settings = HSDSetWiFiCmd(
+                ssid = mSSIDText?.text.toString(),
+                password = mPasswordText?.text.toString(),
+                enable = mEnableWifi?.isChecked ?: false)
+        configFeature?.sendSetCmd(settings, Runnable { dismiss() })
     }
 
 }
