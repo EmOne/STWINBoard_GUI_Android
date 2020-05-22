@@ -69,7 +69,6 @@ internal class SubSensorViewAdapter(
         private val mFsUnit:TextView = itemView.findViewById(R.id.subSensor_fsUnit)
         private val mSampleTSValue:TextInputEditText = itemView.findViewById(R.id.subSensor_sampleTSValue)
         private val mSampleTSLayout:TextInputLayout = itemView.findViewById(R.id.subSensor_sampleTSLayout)
-        private val mMLCConfigLayout:LinearLayout = itemView.findViewById(R.id.subSensor_MLCConfigLayout)
         private val mMLCLoadButton:Button = itemView.findViewById(R.id.subSensor_MLCLoadButton)
 
         private var mSubSensor:SubSensorDescriptor? = null
@@ -202,14 +201,10 @@ internal class SubSensorViewAdapter(
         }
 
         private fun displayMLCSection(showIt: Boolean, sensorType: SensorType){
-            if(showIt) {
-                if (sensorType == SensorType.MLC)
-                    mMLCConfigLayout.visibility = View.VISIBLE
-                else
-                    mMLCConfigLayout.visibility = View.GONE
-            } else {
-                mMLCConfigLayout.visibility = View.GONE
-            }
+            if (sensorType == SensorType.MLC && showIt)
+                mMLCLoadButton.visibility = View.VISIBLE
+            else
+                mMLCLoadButton.visibility = View.GONE
         }
 
         private fun displayParamViews(showIt:Boolean){

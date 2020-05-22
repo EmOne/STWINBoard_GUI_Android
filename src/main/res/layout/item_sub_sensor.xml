@@ -53,8 +53,6 @@
             android:id="@+id/subSensor_icon"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
             android:clickable="true"
             android:focusable="true"
             android:src="@drawable/sensor_type_unknown"
@@ -155,35 +153,19 @@
             android:layout_height="wrap_content"
             app:constraint_referenced_ids="subSensor_odrLabel,subSensor_fullScaleLabel,subSensor_fsSelector,subSensor_fsUnit,subSensor_odrSelector,subSensor_sampleTSLayout" />
 
-        <LinearLayout
-            android:id="@+id/subSensor_MLCConfigLayout"
+
+        <Button
+            android:id="@+id/subSensor_MLCLoadButton"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_width="0dp"
-            android:orientation="horizontal"
             android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
-            app:layout_constraintEnd_toEndOf="@+id/subSensor_sampleTSLayout"
+            android:text="@string/subSensor_load_mlc"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="@+id/subSensor_sampleTSLayout"
-            app:layout_constraintTop_toBottomOf="@+id/subSensor_sampleTSLayout">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="MLC config" />
-
-            <Space
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1" />
-
-            <Button
-                android:id="@+id/subSensor_MLCLoadButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="LOAD"/>
+            app:layout_constraintTop_toBottomOf="@+id/subSensor_sampleTSLayout" />
 
 
-        </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </FrameLayout>

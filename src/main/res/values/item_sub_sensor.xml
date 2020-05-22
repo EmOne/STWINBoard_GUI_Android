@@ -16,4 +16,5 @@
     <string name="subSensor_fullScaleUnitFormat">( %s )</string>
     <string name="subSensor_odrLabel">ODR</string>
     <string name="subSensor_sampleTSHint">SamplesPerTs</string>
+    <string name="subSensor_load_mlc">Load Configuration</string>
 </resources>
