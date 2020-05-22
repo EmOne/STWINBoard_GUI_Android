@@ -62,12 +62,6 @@ import com.st.clab.stwin.gui.R
  *
  */
 open class HSDConfigFragment : Fragment() {
-    private lateinit var recyclerView: RecyclerView
-
-    private var mTaggingMaskView: LinearLayout? = null
-    private var mMaskView: LinearLayout? = null
-    private var dataImageView: ImageView? = null
-    private var mDataTransferAnimation: Animation? = null
 
     private val viewModel by viewModels<HSDConfigViewModel>()
     private val loadMLCViewModel by viewModels<HSDMLCConfigViewModel>()
@@ -155,14 +149,6 @@ open class HSDConfigFragment : Fragment() {
         setHasOptionsMenu(true)
     }
 
-    private fun unobscureConfig(maskLayout: View?, animImage: ImageView?) {
-        animImage?.clearAnimation()
-        mDataTransferAnimation!!.cancel()
-        mDataTransferAnimation!!.reset()
-        maskLayout!!.visibility = View.INVISIBLE
-        maskLayout.isClickable = false
-    }
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         val root = inflater.inflate(R.layout.fragment_stwin_config, container, false)
@@ -175,14 +161,9 @@ open class HSDConfigFragment : Fragment() {
             showSaveDialog()
         }
 
-        recyclerView = root.findViewById(R.id.sensors_list)
+        val recyclerView = root.findViewById<RecyclerView>(R.id.sensors_list)
         recyclerView.adapter = mSensorsAdapter
 
-        mTaggingMaskView = root.findViewById(R.id.start_log_mask)
-        mMaskView = root.findViewById(R.id.animation_mask)
-        dataImageView = root.findViewById(R.id.ongoingLogImageView)
-        mDataTransferAnimation = AnimationUtils.loadAnimation(requireContext().applicationContext, R.anim.move_right_full)
-        unobscureConfig(mTaggingMaskView, dataImageView)
         return root
     }
 
@@ -293,7 +274,6 @@ open class HSDConfigFragment : Fragment() {
         viewModel.requestFileLocation.value = false
         startActivityForResult(intent, CREATE_FILE_REQUEST_CODE)
     }
-
 
     companion object {
         private val WIFI_CONFIG_FRAGMENT_TAG = HSDConfigFragment::class.java.name + ".WIFI_CONFIG_FRAGMENT"
