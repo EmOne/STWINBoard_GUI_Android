@@ -1,9 +1,13 @@
 package com.st.STWINBoard_Gui.Utils
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CompoundButton
 import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.Switch
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -44,13 +48,22 @@ internal class SensorViewAdapter(
         holder.bind(s)
         holder.mSensorName.text = s.sensor.name
         holder.mSensorId.text = s.sensor.id.toString()
+
         if(s.isCollapsed){
             holder.mSubSensorListView.visibility = View.GONE
             holder.mSensorArrowBtn.setBackgroundResource(R.drawable.ic_expand_view)
+            holder.mSubSensorPreview.visibility = View.VISIBLE
         }else{
             holder.mSubSensorListView.visibility = View.VISIBLE
             holder.mSensorArrowBtn.setBackgroundResource(R.drawable.ic_collaps_view)
+            holder.mSubSensorPreview.visibility = View.GONE
         }
+
+        val subSensorPreviewAdapter = SubSensorPreviewViewAdapter(
+                s.sensor,
+                onSubSubSensorEnableStatusChange
+        )
+        holder.mSubSensorPreview.adapter = subSensorPreviewAdapter
 
         val subSensorParamsAdapter = SubSensorViewAdapter(
                 s.sensor,
@@ -69,6 +82,7 @@ internal class SensorViewAdapter(
         val mSensorName: TextView = itemView.findViewById(R.id.sensorItem_nameLabel)
         val mSensorArrowBtn: ImageView = itemView.findViewById(R.id.sensorItem_expandImage)
         val mSensorId: TextView = itemView.findViewById(R.id.sensorItem_idLabel)
+        val mSubSensorPreview: RecyclerView = itemView.findViewById(R.id.sensorItem_subSensorPreview)
         val mSubSensorListView: RecyclerView = itemView.findViewById(R.id.sensorItem_subSensorList)
 
         init {

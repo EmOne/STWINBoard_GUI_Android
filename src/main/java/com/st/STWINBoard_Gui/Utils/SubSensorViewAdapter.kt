@@ -240,7 +240,7 @@ internal class SubSensorViewAdapter(
         SensorType.Humidity -> R.drawable.sensor_type_humidity
         SensorType.Pressure -> R.drawable.sensor_type_pressure
         SensorType.Microphone -> R.drawable.sensor_type_microphone
-        SensorType.MLC -> R.drawable.sensor_type_unknown
+        SensorType.MLC -> R.drawable.sensor_type_mlc
         SensorType.Unknown -> R.drawable.sensor_type_unknown
     }
 
