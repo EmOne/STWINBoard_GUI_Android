@@ -1,13 +1,9 @@
 package com.st.STWINBoard_Gui.Utils
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.CompoundButton
 import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.Switch
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter

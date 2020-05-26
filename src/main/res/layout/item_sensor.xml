@@ -113,14 +113,6 @@
 
                 </LinearLayout>
 
-                <LinearLayout
-                    android:id="@+id/subSensor_previewLayout"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="horizontal">
-
-                </LinearLayout>
-
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/sensorItem_subSensorPreview"
                     android:layout_width="match_parent"
