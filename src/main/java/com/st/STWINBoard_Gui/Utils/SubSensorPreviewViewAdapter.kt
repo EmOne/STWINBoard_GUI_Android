@@ -70,17 +70,4 @@ internal class SubSensorPreviewViewAdapter(
             mIcon.setImageResource(sensorType.imageResource)
         }
     }
-
-    private val SensorType.imageResource:Int
-    get() = when(this){
-        SensorType.Accelerometer -> R.drawable.sensor_type_accelerometer
-        SensorType.Magnetometer -> R.drawable.sensor_type_compass
-        SensorType.Gyroscope -> R.drawable.sensor_type_gyroscope
-        SensorType.Temperature -> R.drawable.sensor_type_temperature
-        SensorType.Humidity -> R.drawable.sensor_type_humidity
-        SensorType.Pressure -> R.drawable.sensor_type_pressure
-        SensorType.Microphone -> R.drawable.sensor_type_microphone
-        SensorType.MLC -> R.drawable.sensor_type_mlc
-        SensorType.Unknown -> R.drawable.sensor_type_unknown
-    }
 }
