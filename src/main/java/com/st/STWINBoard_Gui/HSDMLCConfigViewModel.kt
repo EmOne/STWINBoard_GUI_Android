@@ -64,7 +64,7 @@ internal class HSDMLCConfigViewModel : ViewModel(){
                     lines.forEach { if(!isCommentLine(it)) lineList.add(it) }
                 }
                 val strData = compactLines(lineList)
-                val paramList = listOf(MLCConfigParam(mMLCssId,strData.length/2,strData))
+                val paramList = listOf(MLCConfigParam(mMLCssId,strData.length,strData))
                 mHSDConfigFeature?.sendSetCmd(
                         HSDSetMLCSensorCmd(mMLCsId,paramList),
                         Runnable {
