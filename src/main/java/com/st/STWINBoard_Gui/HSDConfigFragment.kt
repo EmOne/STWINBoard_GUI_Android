@@ -280,8 +280,13 @@ open class HSDConfigFragment : Fragment() {
                 }
                 true
             }
-            R.id.menu_hsdl_saveLoadConf -> {
+            R.id.menu_hsdl_saveConf -> {
                 showSaveDialog()
+                true
+            }
+
+            R.id.menu_hsdl_loadConf -> {
+                requestConfigurationFile()
                 true
             }
             R.id.menu_hsdl_changeAlias -> {
