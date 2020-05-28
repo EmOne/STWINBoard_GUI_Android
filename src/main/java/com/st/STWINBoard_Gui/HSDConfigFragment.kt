@@ -41,9 +41,8 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.view.*
-import android.view.animation.Animation
-import android.view.animation.AnimationUtils
-import android.widget.*
+import android.widget.TextView
+import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
@@ -149,20 +148,28 @@ open class HSDConfigFragment : Fragment() {
         setHasOptionsMenu(true)
     }
 
+    private lateinit var mConfView:View
+    private lateinit var mLoadingView:View
+    private lateinit var mLoadingText:TextView
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         val root = inflater.inflate(R.layout.fragment_stwin_config, container, false)
 
-        root.findViewById<View>(R.id.loadConfButton).setOnClickListener {
+        root.findViewById<View>(R.id.stWinConf_loadButton).setOnClickListener {
             requestConfigurationFile()
         }
 
-        root.findViewById<View>(R.id.saveConfButton).setOnClickListener {
+        root.findViewById<View>(R.id.stWinConf_saveButton).setOnClickListener {
             showSaveDialog()
         }
 
-        val recyclerView = root.findViewById<RecyclerView>(R.id.sensors_list)
+        val recyclerView = root.findViewById<RecyclerView>(R.id.stWinConf_sensorsList)
         recyclerView.adapter = mSensorsAdapter
+
+        mConfView = root.findViewById(R.id.stWinConf_confViewLayout)
+        mLoadingView = root.findViewById(R.id.stWinConf_progressLayout)
+        mLoadingText = root.findViewById(R.id.stWinConf_progressText)
 
         return root
     }
@@ -186,6 +193,33 @@ open class HSDConfigFragment : Fragment() {
                 requestFileCreation()
             }
         })
+
+        viewModel.isConfigLoading.observe(viewLifecycleOwner, Observer { isLoading ->
+            showConfigLoadingView(isLoading)
+        })
+
+        loadMLCViewModel.isLoading.observe(viewLifecycleOwner, Observer { isLoading ->
+            showMLCLoadingView(isLoading)
+        })
+    }
+
+    private fun showProgressView(showIt:Boolean, @StringRes desc:Int){
+        if(showIt){
+            mLoadingView.visibility = View.VISIBLE
+            mConfView.visibility=View.GONE
+            mLoadingText.setText(desc)
+        }else{
+            mLoadingView.visibility = View.GONE
+            mConfView.visibility=View.VISIBLE
+        }
+    }
+
+    private fun showMLCLoadingView(isLoading:Boolean){
+        showProgressView(isLoading,R.string.stwin_loading_ucf)
+    }
+
+    private fun showConfigLoadingView(isLoading:Boolean){
+        showProgressView(isLoading,R.string.stwin_loading_conf)
     }
 
     private fun displayErrorMessage(error: IOConfError) {
@@ -207,6 +241,15 @@ open class HSDConfigFragment : Fragment() {
         }
     }
 
+    fun enableNeededNotification(node: Node) {
+        viewModel.enableNotificationFromNode(node)
+        loadMLCViewModel.attachTo(node)
+    }
+
+    fun disableNeedNotification(node: Node) {
+        viewModel.disableNotificationFromNode(node)
+    }
+
     override fun onStop() {
         super.onStop()
         val node = getNode()
@@ -215,14 +258,12 @@ open class HSDConfigFragment : Fragment() {
         }
     }
 
-    fun enableNeededNotification(node: Node) {
-        viewModel.enableNotificationFromNode(node)
-        loadMLCViewModel.attachTo(node)
+    override fun onDestroyView() {
+        super.onDestroyView()
+        view?.findViewById<RecyclerView>(R.id.stWinConf_sensorsList)
+            ?.adapter=null
     }
 
-     fun disableNeedNotification(node: Node) {
-        viewModel.disableNotificationFromNode(node)
-    }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
