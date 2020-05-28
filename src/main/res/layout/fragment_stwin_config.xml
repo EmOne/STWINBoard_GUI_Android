@@ -43,25 +43,26 @@
     tools:context="com.st.STWINBoard_Gui.HSDConfigFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/stWinConf_confViewLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/sensors_list"
+            android:id="@+id/stWinConf_sensorsList"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
             android:layout_marginBottom="8dp"
             app:layoutManager="LinearLayoutManager"
-            app:layout_constraintBottom_toTopOf="@+id/saveConfButton"
+            app:layout_constraintBottom_toTopOf="@+id/stWinConf_saveButton"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:listitem="@layout/item_sensor" />
 
         <Button
-            android:id="@+id/saveConfButton"
+            android:id="@+id/stWinConf_saveButton"
             android:text="@string/hsdl_saveConfButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -69,49 +70,42 @@
             android:layout_marginBottom="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/sensors_list" />
+            app:layout_constraintTop_toBottomOf="@+id/stWinConf_sensorsList" />
 
         <Button
-            android:id="@+id/loadConfButton"
+            android:id="@+id/stWinConf_loadButton"
             style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
             android:text="@string/hsdl_loadConfButton"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/saveConfButton"
-            app:layout_constraintTop_toTopOf="@+id/saveConfButton" />
+            app:layout_constraintEnd_toStartOf="@+id/stWinConf_saveButton"
+            app:layout_constraintTop_toTopOf="@+id/stWinConf_saveButton" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <LinearLayout
-        android:id="@+id/start_log_mask"
+        android:id="@+id/stWinConf_progressLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#FFFFFF"
         android:clickable="false"
         android:focusable="false"
-        android:orientation="horizontal"
-        android:visibility="invisible">
-    </LinearLayout>
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_margin="8dp"
+        android:visibility="visible">
 
-    <LinearLayout
-        android:id="@+id/animation_mask"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#FFFFFF"
-        android:clickable="false"
-        android:focusable="false"
-        android:orientation="horizontal"
-        android:visibility="invisible">
-
-        <ImageView
-            android:id="@+id/ongoingLogImageView"
+        <ProgressBar
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:src="@drawable/ic_sdcard"
-            android:clickable="false"
-            android:focusable="false"
-            android:visibility="invisible"/>
+            android:layout_height="wrap_content"
+            android:indeterminate="true" />
+        <TextView
+            android:id="@+id/stWinConf_progressText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            tools:text="Loading..."/>
 
     </LinearLayout>
 

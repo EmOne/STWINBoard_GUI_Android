@@ -23,13 +23,17 @@ import java.io.IOError
 
 internal class HSDConfigViewModel : ViewModel(){
 
+    private val _isConfLoading = MutableLiveData<Boolean>()
+    val isConfigLoading:LiveData<Boolean>
+        get() = _isConfLoading
+
     private var mCurrentConfig = mutableListOf<SensorViewData>()
     private val _boardConfiguration = MutableLiveData(mCurrentConfig.toList())
     val sensorsConfiguraiton:LiveData<List<SensorViewData>>
         get() = _boardConfiguration
 
     private var mHSDConfigFeature:FeatureHSDataLogConfig? = null
-    private val mSTWINConfListener = Feature.FeatureListener { f: Feature, sample: Feature.Sample? ->
+    private val mSTWINConfListener = Feature.FeatureListener { _: Feature, sample: Feature.Sample? ->
         if (sample == null)
             return@FeatureListener
 
@@ -39,6 +43,7 @@ internal class HSDConfigViewModel : ViewModel(){
         newConfiguration.addAll(sensors.map { it.toSensorViewData() })
         if(mCurrentConfig != newConfiguration){
             mCurrentConfig = newConfiguration
+            _isConfLoading.postValue(false)
             _boardConfiguration.postValue(mCurrentConfig.toList())
         }
     }
@@ -180,6 +185,7 @@ internal class HSDConfigViewModel : ViewModel(){
             addFeatureListener(mSTWINConfListener)
             enableNotification()
             if(mCurrentConfig.isEmpty()) {
+                _isConfLoading.postValue(true)
                 sendGetCmd(HSDGetDeviceCmd())
             }
         }

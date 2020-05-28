@@ -14,4 +14,7 @@
     <string name="hsdl_error_readError">Error reading the file</string>
     <string name="hsdl_error_writeError">Error writing the file</string>
     <string name="hsdl_error_createError">Error creating the file</string>
+
+    <string name="stwin_loading_ucf">Ufc file uploading…</string>
+    <string name="stwin_loading_conf">Downloading configuration…</string>
 </resources>
