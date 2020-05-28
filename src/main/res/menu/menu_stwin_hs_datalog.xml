@@ -45,6 +45,11 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/menu_hsdl_saveLoadConf"
+        android:title="@string/hsd_save_load_configuration"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/menu_hsdl_changeAlias"
         android:title="@string/hsdl_changeAlias"
         app:showAsAction="never" />
