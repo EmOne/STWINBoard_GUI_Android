@@ -156,13 +156,13 @@ open class HSDConfigFragment : Fragment() {
                               savedInstanceState: Bundle?): View? {
         val root = inflater.inflate(R.layout.fragment_stwin_config, container, false)
 
-        /*root.findViewById<View>(R.id.loadConfButton).setOnClickListener {
+        root.findViewById<View>(R.id.stWinConf_loadButton).setOnClickListener {
             requestConfigurationFile()
         }
 
         root.findViewById<View>(R.id.stWinConf_saveButton).setOnClickListener {
             showSaveDialog()
-        }*/
+        }
 
         val recyclerView = root.findViewById<RecyclerView>(R.id.stWinConf_sensorsList)
         recyclerView.adapter = mSensorsAdapter
@@ -170,6 +170,13 @@ open class HSDConfigFragment : Fragment() {
         mConfView = root.findViewById(R.id.stWinConf_confViewLayout)
         mLoadingView = root.findViewById(R.id.stWinConf_progressLayout)
         mLoadingText = root.findViewById(R.id.stWinConf_progressText)
+
+        val viewSaveButton = root.findViewById<View>(R.id.stWinConf_loadSaveButtonGroup)
+        viewSaveButton.visibility = if(showSaveButton()){
+            View.VISIBLE
+        }else{
+            View.GONE
+        }
 
         return root
     }
@@ -325,6 +332,10 @@ open class HSDConfigFragment : Fragment() {
         startActivityForResult(intent, CREATE_FILE_REQUEST_CODE)
     }
 
+    private fun showSaveButton():Boolean{
+        return arguments?.getBoolean(SHOW_SAVE_BUTTON_EXTRA,false) ?: false
+    }
+
     companion object {
         private val WIFI_CONFIG_FRAGMENT_TAG = HSDConfigFragment::class.java.name + ".WIFI_CONFIG_FRAGMENT"
         private val ALIAS_CONFIG_FRAGMENT_TAG = HSDConfigFragment::class.java.name + ".ALIAS_CONFIG_FRAGMENT"
@@ -333,12 +344,15 @@ open class HSDConfigFragment : Fragment() {
         private const val PICKFILE_UCF_REQUEST_CODE = 7778
         private const val PICKFILE_UCF_REQUEST_TYPE = "application/ucf"
         private const val DEFAULT_CONFI_NAME = "STWIN_conf.json"
-        private val NODE_TAG_EXTRA = HSDConfigFragment::class.java.name + ".NODE_TAG_EXTRA"
 
-        fun newInstance(node: Node): Fragment {
+        private val NODE_TAG_EXTRA = HSDConfigFragment::class.java.name + ".NODE_TAG_EXTRA"
+        private val SHOW_SAVE_BUTTON_EXTRA = HSDConfigFragment::class.java.name + ".NODE_TAG_EXTRA"
+
+        fun newInstance(node: Node,showSaveButton:Boolean = false): Fragment {
             return HSDConfigFragment().apply {
                 arguments = Bundle().apply {
                     putString(NODE_TAG_EXTRA,node.tag)
+                    putBoolean(SHOW_SAVE_BUTTON_EXTRA,showSaveButton)
                 }
             }
         }
