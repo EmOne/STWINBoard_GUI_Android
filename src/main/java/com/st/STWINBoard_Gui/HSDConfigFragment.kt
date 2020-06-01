@@ -156,13 +156,13 @@ open class HSDConfigFragment : Fragment() {
                               savedInstanceState: Bundle?): View? {
         val root = inflater.inflate(R.layout.fragment_stwin_config, container, false)
 
-        root.findViewById<View>(R.id.stWinConf_loadButton).setOnClickListener {
+        /*root.findViewById<View>(R.id.loadConfButton).setOnClickListener {
             requestConfigurationFile()
         }
 
         root.findViewById<View>(R.id.stWinConf_saveButton).setOnClickListener {
             showSaveDialog()
-        }
+        }*/
 
         val recyclerView = root.findViewById<RecyclerView>(R.id.stWinConf_sensorsList)
         recyclerView.adapter = mSensorsAdapter
@@ -278,6 +278,15 @@ open class HSDConfigFragment : Fragment() {
                     val wifSettings = WiFiConfigureDialogFragment.newInstance(node)
                     wifSettings.show(childFragmentManager, WIFI_CONFIG_FRAGMENT_TAG)
                 }
+                true
+            }
+            R.id.menu_hsdl_saveConf -> {
+                showSaveDialog()
+                true
+            }
+
+            R.id.menu_hsdl_loadConf -> {
+                requestConfigurationFile()
                 true
             }
             R.id.menu_hsdl_changeAlias -> {

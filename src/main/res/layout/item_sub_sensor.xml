@@ -135,11 +135,13 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/subSensor_sampleTSValue"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
             android:hint="@string/subSensor_sampleTSHint"
             android:imeOptions="actionDone"
             android:inputType="number"
-            android:singleLine="true" />
+            android:singleLine="true"
+            android:visibility="invisible"/>
+
     </com.google.android.material.textfield.TextInputLayout>
 
     <androidx.constraintlayout.widget.Group

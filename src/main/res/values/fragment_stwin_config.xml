@@ -3,6 +3,8 @@
     <string name="stwin_log_start_log">Start</string>
     <string name="stwin_log_stop_log">Stop</string>
     <string name="hsd_wi_fi_configuration">Set WiFi Credentials</string>
+    <string name="hsd_save_configuration">Save Configuration</string>
+    <string name="hsd_load_configuration">Load Configuration</string>
     <string name="hsdl_changeAlias">Board Alias</string>
     <string name="hsd_cancel">Cancel</string>
     <string name="hsdl_loadConfButton">Load</string>
