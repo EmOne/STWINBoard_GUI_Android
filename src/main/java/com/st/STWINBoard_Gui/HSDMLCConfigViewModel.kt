@@ -58,13 +58,9 @@ internal class HSDMLCConfigViewModel : ViewModel(){
                     _error.postValue(IOConfError.ImpossibleReadFile)
                     return@launch
                 }
-                val lineList = mutableListOf<String>()
-                //the stream is close by useLine
-                stream.bufferedReader(Charsets.UTF_8).useLines { lines ->
-                    lines.forEach { if(!isCommentLine(it)) lineList.add(it) }
-                }
-                val strData = compactLines(lineList)
-                val paramList = listOf(MLCConfigParam(mMLCssId,strData.length,strData))
+                val fullSize = stream.readBytes().toString(Charsets.UTF_8)
+                stream.close()
+                val paramList = listOf(MLCConfigParam.fromUCFString(mMLCssId,fullSize))
                 mHSDConfigFeature?.sendSetCmd(
                         HSDSetMLCSensorCmd(mMLCsId,paramList),
                         Runnable {
@@ -83,12 +79,5 @@ internal class HSDMLCConfigViewModel : ViewModel(){
         }
     }
 
-    private fun isCommentLine(line:String):Boolean{
-        return line.startsWith("--")
-    }
 
-    private fun compactLines(lines:List<String>):String{
-        val isSpace = "\\s+".toRegex()
-        return lines.joinToString("") { it.replace(isSpace,"").drop(2)}
-    }
 }
