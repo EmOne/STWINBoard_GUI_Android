@@ -205,6 +205,8 @@ internal class SubSensorViewAdapter(
                 mMLCLoadButton.visibility = View.VISIBLE
             else
                 mMLCLoadButton.visibility = View.GONE
+            mFsSelector.visibility = View.GONE
+            mFsUnit.visibility = View.GONE
         }
 
         private fun displayParamViews(showIt:Boolean){
