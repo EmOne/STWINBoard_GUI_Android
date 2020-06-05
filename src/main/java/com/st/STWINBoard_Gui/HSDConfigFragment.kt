@@ -346,7 +346,7 @@ open class HSDConfigFragment : Fragment() {
         private const val DEFAULT_CONFI_NAME = "STWIN_conf.json"
 
         private val NODE_TAG_EXTRA = HSDConfigFragment::class.java.name + ".NODE_TAG_EXTRA"
-        private val SHOW_SAVE_BUTTON_EXTRA = HSDConfigFragment::class.java.name + ".NODE_TAG_EXTRA"
+        private val SHOW_SAVE_BUTTON_EXTRA = HSDConfigFragment::class.java.name + ".SHOW_SAVE_BUTTON_EXTRA"
 
         fun newInstance(node: Node,showSaveButton:Boolean = false): Fragment {
             return HSDConfigFragment().apply {
