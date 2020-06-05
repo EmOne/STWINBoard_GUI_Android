@@ -172,7 +172,7 @@ open class HSDConfigFragment : Fragment() {
         mLoadingText = root.findViewById(R.id.stWinConf_progressText)
 
         val viewSaveButton = root.findViewById<View>(R.id.stWinConf_loadSaveButtonGroup)
-        viewSaveButton.visibility = if(showSaveButton()){
+        viewSaveButton.visibility = if(showSaveButton){
             View.VISIBLE
         }else{
             View.GONE
@@ -260,7 +260,7 @@ open class HSDConfigFragment : Fragment() {
     override fun onStop() {
         super.onStop()
         val node = getNode()
-        if(node!=null){
+        if(node!=null && disableNotificationOnStop){
             disableNeedNotification(node)
         }
     }
@@ -332,9 +332,12 @@ open class HSDConfigFragment : Fragment() {
         startActivityForResult(intent, CREATE_FILE_REQUEST_CODE)
     }
 
-    private fun showSaveButton():Boolean{
-        return arguments?.getBoolean(SHOW_SAVE_BUTTON_EXTRA,false) ?: false
-    }
+
+    private val showSaveButton:Boolean
+        get() =  arguments?.getBoolean(SHOW_SAVE_BUTTON_EXTRA,false) ?: false
+
+    private val disableNotificationOnStop:Boolean
+        get() = arguments?.getBoolean(DISABLE_NOTIFICATION_ON_STOP,true) ?: true
 
     companion object {
         private val WIFI_CONFIG_FRAGMENT_TAG = HSDConfigFragment::class.java.name + ".WIFI_CONFIG_FRAGMENT"
@@ -347,12 +350,14 @@ open class HSDConfigFragment : Fragment() {
 
         private val NODE_TAG_EXTRA = HSDConfigFragment::class.java.name + ".NODE_TAG_EXTRA"
         private val SHOW_SAVE_BUTTON_EXTRA = HSDConfigFragment::class.java.name + ".SHOW_SAVE_BUTTON_EXTRA"
+        private val DISABLE_NOTIFICATION_ON_STOP = HSDConfigFragment::class.java.name + ".DISABLE_NOTIFICATION_ON_STOP"
 
-        fun newInstance(node: Node,showSaveButton:Boolean = false): Fragment {
+        fun newInstance(node: Node,showSaveButton:Boolean = false,disableNotificationOnStop:Boolean = true): Fragment {
             return HSDConfigFragment().apply {
                 arguments = Bundle().apply {
                     putString(NODE_TAG_EXTRA,node.tag)
                     putBoolean(SHOW_SAVE_BUTTON_EXTRA,showSaveButton)
+                    putBoolean(DISABLE_NOTIFICATION_ON_STOP,disableNotificationOnStop)
                 }
             }
         }
