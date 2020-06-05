@@ -144,13 +144,6 @@
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <androidx.constraintlayout.widget.Group
-        android:id="@+id/subSensor_paramViews"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:constraint_referenced_ids="subSensor_odrLabel,subSensor_fullScaleLabel,subSensor_fsSelector,subSensor_fsUnit,subSensor_odrSelector,subSensor_sampleTSLayout" />
-
-
     <Button
         android:id="@+id/subSensor_MLCLoadButton"
         style="@style/Widget.MaterialComponents.Button.TextButton"
@@ -161,6 +154,20 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="@+id/subSensor_sampleTSLayout"
         app:layout_constraintTop_toBottomOf="@+id/subSensor_sampleTSLayout" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/subSensor_fullScaleViews"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="subSensor_fullScaleLabel,subSensor_fsSelector,subSensor_fsUnit" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/subSensor_odrViews"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="subSensor_odrLabel,subSensor_odrSelector" />
+
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

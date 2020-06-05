@@ -20,7 +20,7 @@ internal class HSDConfigSaveDialogFragment : DialogFragment(){
         builder.setTitle(R.string.saveConf_title)
 
         val booleanStatus = booleanArrayOf(currentStatus.storeLocalCopy,currentStatus.setAsDefault)
-        builder.setMultiChoiceItems(R.array.saveConf_choose,booleanStatus ){ dialog, which, isChecked ->
+        builder.setMultiChoiceItems(R.array.saveConf_choose,booleanStatus ){ _, which, isChecked ->
             when(which){
                 0 -> currentStatus.storeLocalCopy = isChecked
                 1 -> currentStatus.setAsDefault = isChecked

@@ -1,7 +1,5 @@
 package com.st.STWINBoard_Gui.Utils
 
-import android.graphics.ColorMatrix
-import android.graphics.ColorMatrixColorFilter
 import android.util.Log
 import android.view.KeyEvent
 import android.view.LayoutInflater
@@ -28,18 +26,6 @@ internal class SubSensorViewAdapter(
     private val mSubSensorList: List<SubSensorDescriptor> = sensor.sensorDescriptor.subSensorDescriptors
     private val mSubStatusList: List<SubSensorStatus> = sensor.sensorStatus.subSensorStatusList
 
-    companion object {
-
-        /**
-         * filter for convert a color image in a gray scale one
-         */
-        val sToGrayScale: ColorMatrixColorFilter by lazy{
-            val temp = ColorMatrix()
-            temp.setSaturation(0.0f)
-            ColorMatrixColorFilter(temp)
-        }
-    }
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val view = inflater.inflate(R.layout.item_sub_sensor, parent, false)
@@ -62,14 +48,21 @@ internal class SubSensorViewAdapter(
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val mIcon: ImageView = itemView.findViewById(R.id.subSensor_icon)
         private val mName: TextView = itemView.findViewById(R.id.subSensor_name)
-        private val mParamViews:View = itemView.findViewById(R.id.subSensor_paramViews)
+
         private val mEnabledSwitch:Switch = itemView.findViewById(R.id.subSensor_enable)
+
+        private val mOdrViews:View = itemView.findViewById(R.id.subSensor_odrViews)
         private val mOdrSelector:Spinner = itemView.findViewById(R.id.subSensor_odrSelector)
+
+        private val mFsViews:View = itemView.findViewById(R.id.subSensor_fullScaleViews)
         private val mFsSelector:Spinner = itemView.findViewById(R.id.subSensor_fsSelector)
         private val mFsUnit:TextView = itemView.findViewById(R.id.subSensor_fsUnit)
+
         private val mSampleTSValue:TextInputEditText = itemView.findViewById(R.id.subSensor_sampleTSValue)
         private val mSampleTSLayout:TextInputLayout = itemView.findViewById(R.id.subSensor_sampleTSLayout)
+
         private val mMLCLoadButton:Button = itemView.findViewById(R.id.subSensor_MLCLoadButton)
+
 
         private var mSubSensor:SubSensorDescriptor? = null
         private var mSubSensorStatus:SubSensorStatus? = null
@@ -77,8 +70,7 @@ internal class SubSensorViewAdapter(
         private val onCheckedChangeListener  = object : CompoundButton.OnCheckedChangeListener{
             override fun onCheckedChanged(buttonView: CompoundButton?, isChecked: Boolean) {
                 val subSensor = mSubSensor ?: return
-                displayParamViews(isChecked)
-                displayMLCSection(isChecked,subSensor.sensorType)
+                displatSensorConfigurationViews(isChecked,subSensor.sensorType)
                 onSubSensorEnableStatusChange(sensor,subSensor,isChecked)
             }
         }
@@ -106,7 +98,7 @@ internal class SubSensorViewAdapter(
                 }
             })
 
-            mSampleTSValue.setOnEditorActionListener { v: TextView, actionId: Int, event: KeyEvent? ->
+            mSampleTSValue.setOnEditorActionListener { v: TextView, actionId: Int, _: KeyEvent? ->
                 val subSensor = mSubSensor ?: return@setOnEditorActionListener false
                 val newValue = v.text.toString().toIntOrNull() ?: return@setOnEditorActionListener false
                 when (actionId) {
@@ -195,27 +187,28 @@ internal class SubSensorViewAdapter(
         private fun setEnableState(newState:Boolean,sensorType: SensorType){
             mEnabledSwitch.setOnCheckedChangeListener(null)
             mEnabledSwitch.isChecked = newState
-            displayParamViews(newState)
-            displayMLCSection(newState,sensorType)
+            displatSensorConfigurationViews(newState,sensorType)
             mEnabledSwitch.setOnCheckedChangeListener(onCheckedChangeListener)
         }
 
-        private fun displayMLCSection(showIt: Boolean, sensorType: SensorType){
-            if (sensorType == SensorType.MLC && showIt)
-                mMLCLoadButton.visibility = View.VISIBLE
-            else
-                mMLCLoadButton.visibility = View.GONE
-            mFsSelector.visibility = View.GONE
-            mFsUnit.visibility = View.GONE
-        }
-
-        private fun displayParamViews(showIt:Boolean){
-            mParamViews.visibility = if(showIt){
-                View.VISIBLE
+        private fun displatSensorConfigurationViews(showIt: Boolean, sensorType: SensorType){
+            if(showIt){
+                if(sensorType == SensorType.MLC){
+                    mMLCLoadButton.visibility= View.VISIBLE
+                    mFsViews.visibility = View.GONE
+                    mOdrViews.visibility = View.GONE
+                }else{
+                    mMLCLoadButton.visibility= View.GONE
+                    mFsViews.visibility = View.VISIBLE
+                    mOdrViews.visibility = View.VISIBLE
+                }
             }else{
-                View.GONE
+                mMLCLoadButton.visibility= View.GONE
+                mFsViews.visibility = View.GONE
+                mOdrViews.visibility = View.GONE
             }
         }
+
 
         private fun setSample(settings:SamplesPerTs,currentValue: Int?){
             //val errorMessage = mSampleTSLayout.context.getString(R.string.subSensor_sampleErrorFromat,settings.min,settings.max)
