@@ -78,8 +78,12 @@ android {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation project(path: ':BlueSTSDK')
-    implementation project(path: ':BlueSTSDK_Gui')
-    //implementation project(path: ':BlueSTSDK_Gui_Android')
+
+    if(findProject(':BlueSTSDK_Gui')) {
+        implementation project(path: ':BlueSTSDK_Gui')
+    }else{
+        implementation project(path: ':BlueSTSDK_Gui_Android')
+    }
 
     implementation group: 'androidx.recyclerview', name:'recyclerview', version:"$rootProject.androidx_recycleViewVersion"
     implementation group: 'androidx.fragment', name: 'fragment-ktx', version: "$rootProject.androidx_fragmentVersion"
