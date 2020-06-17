@@ -1,6 +1,6 @@
 # STWIN Board GUI Android
 
-This repository contains the (ST WIN Board)[www.st.com/stwin] support source code.
+This repository contains the [ST WIN](www.st.com/stwin) board support source code.
 With this library contains the UI to configure the ST WIN board
 
 ## License
