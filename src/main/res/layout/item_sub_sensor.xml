@@ -134,13 +134,8 @@
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/subSensor_sampleTSValue"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:hint="@string/subSensor_sampleTSHint"
-            android:imeOptions="actionDone"
-            android:inputType="number"
-            android:singleLine="true"
-            android:visibility="invisible"/>
+            android:layout_width="0dp"
+            android:layout_height="0dp" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -149,11 +144,37 @@
         style="@style/Widget.MaterialComponents.Button.TextButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
         android:text="@string/subSensor_load_mlc"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/subSensor_sampleTSLayout"
+        app:layout_constraintEnd_toEndOf="@id/subSensor_fsSelector"
+        app:layout_constraintStart_toStartOf="@+id/subSensor_fsSelector"
+        app:layout_constraintTop_toBottomOf="@+id/ucf_load_status_check" />
+
+    <com.google.android.material.chip.Chip
+        android:id="@+id/ucf_load_status_check"
+        style="@style/Widget.MaterialComponents.Chip.Choice"
+        android:clickable="false"
+        app:chipIconVisible="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/ucf_file_loaded"
+        app:layout_constraintBottom_toTopOf="@+id/subSensor_MLCLoadButton"
+        app:layout_constraintEnd_toEndOf="@+id/subSensor_sampleTSLayout"
+        app:layout_constraintStart_toStartOf="@id/subSensor_fsSelector"
         app:layout_constraintTop_toBottomOf="@+id/subSensor_sampleTSLayout" />
+
+    <!--<com.google.android.material.checkbox.MaterialCheckBox
+        android:id="@+id/ucf_load_status_check"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:clickable="false"
+        android:gravity="end"
+        android:text="@string/ucf_file_loaded"
+        app:layout_constraintBottom_toTopOf="@+id/subSensor_MLCLoadButton"
+        app:layout_constraintEnd_toEndOf="@+id/subSensor_sampleTSLayout"
+        app:layout_constraintTop_toBottomOf="@+id/subSensor_sampleTSLayout" />-->
 
     <androidx.constraintlayout.widget.Group
         android:id="@+id/subSensor_fullScaleViews"

@@ -35,11 +35,10 @@
  * OF SUCH DAMAGE.
  */
 
-package com.st.STWINBoard_Gui.Utils
+package com.st.STWINBoard_Gui
 
-import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.Sensor
-
-internal data class SensorViewData(
-        val sensor: Sensor,
-        var isCollapsed:Boolean,
-        var hasLockedParams:Boolean)
+internal data class FWErrorInfo(
+        var currFW:String = "",
+        var targetFW:String = "",
+        var targetFWUrl:String = ""
+)

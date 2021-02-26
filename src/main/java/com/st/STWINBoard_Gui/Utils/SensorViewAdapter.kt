@@ -46,15 +46,17 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.Sensor
+import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.SensorType
 import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.SubSensorDescriptor
 import com.st.clab.stwin.gui.R
 
 
-typealias OnSubSensorEnableStatusChange = (sensor:Sensor,subSensor: SubSensorDescriptor, newState:Boolean)->Unit
+typealias OnSubSensorEnableStatusChange = (sensor:Sensor,subSensor: SubSensorDescriptor, newState:Boolean, paramsLocked:Boolean)->Unit
 typealias OnSubSensorODRChange = (sensor:Sensor,subSensor: SubSensorDescriptor, newOdrValue:Double)->Unit
 typealias OnSubSensorFullScaleChange = (sensor:Sensor,subSensor: SubSensorDescriptor, newFSValue:Double)->Unit
 typealias OnSubSensorSampleChange = (sensor:Sensor,subSensor: SubSensorDescriptor, newSampleValue:Int)->Unit
 typealias OnSubSensorOpenMLCConf = (sensor:Sensor,subSensor: SubSensorDescriptor)->Unit
+typealias OnUCFStatusChange = (sensor:Sensor,subSensor: SubSensorDescriptor, newStatus:Boolean)->Unit
 
 internal class SensorViewAdapter(
         private val mCallback: SensorInteractionCallback,
@@ -62,7 +64,8 @@ internal class SensorViewAdapter(
         private val onSubSensorODRChange: OnSubSensorODRChange,
         private val onSubSensorFullScaleChange: OnSubSensorFullScaleChange,
         private val onSubSensorSampleChange: OnSubSensorSampleChange,
-        private val onSubSensorOpenMLCConf: OnSubSensorOpenMLCConf) :
+        private val onSubSensorOpenMLCConf: OnSubSensorOpenMLCConf,
+        private val onUCFStatusChange: OnUCFStatusChange) :
         ListAdapter<SensorViewData,SensorViewAdapter.ViewHolder>(SensorDiffCallback()) {
 
     interface SensorInteractionCallback {
@@ -73,7 +76,16 @@ internal class SensorViewAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val view = inflater.inflate(R.layout.item_sensor, parent, false)
-        return ViewHolder(mCallback,view)
+        return ViewHolder(mCallback, view)
+    }
+
+    private fun getMLCSensorID(subSensorDescriptorList:List<SubSensorDescriptor>):Int {
+        for (ssd in subSensorDescriptorList){
+            if (ssd.sensorType == SensorType.MLC){
+                return ssd.id
+            }
+        }
+        return -1
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -81,6 +93,11 @@ internal class SensorViewAdapter(
         holder.bind(s)
         holder.mSensorName.text = s.sensor.name
         holder.mSensorId.text = s.sensor.id.toString()
+
+        val mlcId = getMLCSensorID(s.sensor.sensorDescriptor.subSensorDescriptors)
+        if(mlcId != -1){
+            s.sensor.sensorStatus.paramsLocked = s.sensor.sensorStatus.subSensorStatusList[mlcId].isActive && s.sensor.sensorStatus.subSensorStatusList[mlcId].ucfLoaded
+        }
 
         if(s.isCollapsed){
             holder.mSubSensorListView.visibility = View.GONE
@@ -94,7 +111,8 @@ internal class SensorViewAdapter(
 
         val subSensorPreviewAdapter = SubSensorPreviewViewAdapter(
                 s.sensor,
-                onSubSubSensorEnableStatusChange
+                onSubSubSensorEnableStatusChange,
+                onSubSensorOpenMLCConf
         )
         holder.mSubSensorPreview.adapter = subSensorPreviewAdapter
 
@@ -104,7 +122,8 @@ internal class SensorViewAdapter(
                 onSubSensorODRChange,
                 onSubSensorFullScaleChange,
                 onSubSensorSampleChange,
-                onSubSensorOpenMLCConf)
+                onSubSensorOpenMLCConf,
+                onUCFStatusChange)
 
         holder.mSubSensorListView.adapter = subSensorParamsAdapter
     }
@@ -137,8 +156,10 @@ internal class SensorViewAdapter(
 }
 
 private class SensorDiffCallback : DiffUtil.ItemCallback<SensorViewData>(){
+
     override fun areItemsTheSame(oldItem: SensorViewData, newItem: SensorViewData): Boolean {
-        return oldItem.sensor.id == newItem.sensor.id
+        val checkParamLock = oldItem.sensor.sensorStatus.paramsLocked == newItem.sensor.sensorStatus.paramsLocked
+        return checkParamLock && oldItem.sensor.sensorStatus == newItem.sensor.sensorStatus
     }
 
     override fun areContentsTheSame(oldItem: SensorViewData, newItem: SensorViewData): Boolean {

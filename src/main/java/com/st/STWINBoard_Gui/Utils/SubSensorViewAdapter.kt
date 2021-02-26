@@ -37,6 +37,7 @@
 
 package com.st.STWINBoard_Gui.Utils
 
+import android.graphics.Color
 import android.util.Log
 import android.view.KeyEvent
 import android.view.LayoutInflater
@@ -45,6 +46,7 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.*
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.chip.Chip
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.*
@@ -56,7 +58,8 @@ internal class SubSensorViewAdapter(
         private val onSubSensorODRChange: OnSubSensorODRChange,
         private val onSubSensorFullScaleChange: OnSubSensorFullScaleChange,
         private val onSubSensorSampleChange: OnSubSensorSampleChange,
-        private val onSubSensorOpenMLCConf: OnSubSensorOpenMLCConf
+        private val onSubSensorOpenMLCConf: OnSubSensorOpenMLCConf,
+        private val onUCFStatusChange: OnUCFStatusChange
         ) : RecyclerView.Adapter<SubSensorViewAdapter.ViewHolder>() {
 
     //SubParam List
@@ -72,10 +75,7 @@ internal class SubSensorViewAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val subSensorDescriptor = mSubSensorList[position]
         val subSensorStatus = mSubStatusList[position]
-
         holder.bind(subSensorDescriptor,subSensorStatus)
-
-        //manageSubSensorStatus(subSensorStatus, holder.mSubSensorIcon, holder.mSubSensorRowLayoutMask)
     }
 
     override fun getItemCount(): Int {
@@ -98,8 +98,8 @@ internal class SubSensorViewAdapter(
         private val mSampleTSValue:TextInputEditText = itemView.findViewById(R.id.subSensor_sampleTSValue)
         private val mSampleTSLayout:TextInputLayout = itemView.findViewById(R.id.subSensor_sampleTSLayout)
 
+        private val mUCFLoadedChip:Chip = itemView.findViewById(R.id.ucf_load_status_check)
         private val mMLCLoadButton:Button = itemView.findViewById(R.id.subSensor_MLCLoadButton)
-
 
         private var mSubSensor:SubSensorDescriptor? = null
         private var mSubSensorStatus:SubSensorStatus? = null
@@ -107,8 +107,25 @@ internal class SubSensorViewAdapter(
         private val onCheckedChangeListener  = object : CompoundButton.OnCheckedChangeListener{
             override fun onCheckedChanged(buttonView: CompoundButton?, isChecked: Boolean) {
                 val subSensor = mSubSensor ?: return
-                displatSensorConfigurationViews(isChecked,subSensor.sensorType)
-                onSubSensorEnableStatusChange(sensor,subSensor,isChecked)
+                var paramsLocked = sensor.sensorStatus.paramsLocked
+                if (mSubSensor!!.sensorType == SensorType.MLC){
+                    if(isChecked) {
+                        if (mSubSensorStatus!!.ucfLoaded) {
+                            paramsLocked = true
+                        }
+                    } else {
+                        paramsLocked = false
+                    }
+                }
+                displaySensorConfigurationViews(isChecked, paramsLocked, subSensor.sensorType)
+                onSubSensorEnableStatusChange(sensor,subSensor,isChecked, paramsLocked)
+            }
+        }
+
+        private val onUCFStatusChangeListener  = object : CompoundButton.OnCheckedChangeListener{
+            override fun onCheckedChanged(buttonView: CompoundButton?, isChecked: Boolean) {
+                val subSensor = mSubSensor ?: return
+                onUCFStatusChange(sensor,subSensor,isChecked)
             }
         }
 
@@ -160,9 +177,10 @@ internal class SubSensorViewAdapter(
             mSubSensor = subSensor
             mSubSensorStatus = status
             setSensorData(subSensor.sensorType)
-            setEnableState(status.isActive,subSensor.sensorType)
-            setOdr(subSensor.odr,status.odr)
-            setFullScale(subSensor.fs,status.fs)
+            setEnableState(status.isActive,subSensor.sensorType,sensor.sensorStatus.paramsLocked)
+            setUCFStatus(status.ucfLoaded,subSensor.sensorType)
+            setOdr(subSensor.odr, status.odr, status.isActive, subSensor.sensorType, sensor.sensorStatus.paramsLocked)
+            setFullScale(subSensor.fs,status.fs, status.isActive, subSensor.sensorType, sensor.sensorStatus.paramsLocked)
             setFullScaleUnit(subSensor.unit)
             setSample(subSensor.samplesPerTs,status.samplesPerTs)
         }
@@ -175,11 +193,16 @@ internal class SubSensorViewAdapter(
             }
         }
 
-        private fun setOdr(odrValues: List<Double>?, currentValue: Double?) {
-            mOdrSelector.isEnabled = odrValues!=null
+        private fun setOdr(odrValues: List<Double>?, currentValue: Double?, isActive:Boolean, sensorType:SensorType, lockParams:Boolean) {
             if(odrValues == null) {
                 mOdrSelector.visibility = View.GONE
                 return
+            } else {
+                if(!lockParams && (sensorType != SensorType.MLC) && isActive) {
+                    mOdrViews.visibility = View.VISIBLE
+                } else {
+                    mOdrViews.visibility = View.GONE
+                }
             }
 
             val selectedIndex = if(currentValue !=null) {
@@ -198,11 +221,16 @@ internal class SubSensorViewAdapter(
             mOdrSelector.setSelection(selectedIndex)
         }
 
-        private fun setFullScale(fsValues: List<Double>?, currentValue: Double?) {
-            mFsSelector.isEnabled = fsValues!=null
+        private fun setFullScale(fsValues: List<Double>?, currentValue: Double?, isActive:Boolean, sensorType:SensorType, lockParams:Boolean) {
             if(fsValues == null) {
-                mFsSelector.visibility = View.INVISIBLE;
+                mFsSelector.visibility = View.GONE;
                 return
+            } else {
+                if(!lockParams && (sensorType != SensorType.MLC) && isActive) {
+                    mFsViews.visibility = View.VISIBLE
+                } else {
+                    mFsViews.visibility = View.GONE
+                }
             }
 
             val selectedIndex = if(currentValue !=null) {
@@ -221,34 +249,69 @@ internal class SubSensorViewAdapter(
             mFsSelector.setSelection(selectedIndex)
         }
 
-        private fun setEnableState(newState:Boolean,sensorType: SensorType){
+        private fun setEnableState(newState:Boolean,sensorType: SensorType, lockParams:Boolean){
             mEnabledSwitch.setOnCheckedChangeListener(null)
             mEnabledSwitch.isChecked = newState
-            displatSensorConfigurationViews(newState,sensorType)
+            displaySensorConfigurationViews(newState, lockParams, sensorType)
             mEnabledSwitch.setOnCheckedChangeListener(onCheckedChangeListener)
         }
 
-        private fun displatSensorConfigurationViews(showIt: Boolean, sensorType: SensorType){
-            if(showIt){
-                if(sensorType == SensorType.MLC){
-                    mMLCLoadButton.visibility= View.VISIBLE
-                    mFsViews.visibility = View.GONE
-                    mOdrViews.visibility = View.GONE
-                }else{
-                    mMLCLoadButton.visibility= View.GONE
-                    mFsViews.visibility = View.VISIBLE
-                    mOdrViews.visibility = View.VISIBLE
+        private fun setUCFStatus(newState:Boolean,sensorType: SensorType){
+            if (sensorType == SensorType.MLC) {
+                mUCFLoadedChip.setOnCheckedChangeListener(null)
+                mUCFLoadedChip.isChecked = newState
+                if (newState){
+                    mUCFLoadedChip.setText(R.string.ucf_file_loaded)
+                    mUCFLoadedChip.setTextColor(Color.parseColor("#FFFFFF"))
+                    mUCFLoadedChip.setChipIconResource(R.drawable.ic_done)
+                    mMLCLoadButton.setText(R.string.subSensor_change_mlc)
+                } else {
+                    mUCFLoadedChip.setText(R.string.ucf_file_not_loaded)
+                    mUCFLoadedChip.setTextColor(Color.parseColor("#E6007E"))
+                    mUCFLoadedChip.setChipIconResource(R.drawable.ic_invalid)
+                    mMLCLoadButton.setText(R.string.subSensor_load_mlc)
                 }
-            }else{
-                mMLCLoadButton.visibility= View.GONE
-                mFsViews.visibility = View.GONE
-                mOdrViews.visibility = View.GONE
+                mUCFLoadedChip.setOnCheckedChangeListener(onUCFStatusChangeListener)
+                mEnabledSwitch.isEnabled = newState
             }
         }
 
+        private fun displaySensorConfigurationViews(showIt: Boolean, lockParams: Boolean, sensorType: SensorType){
+            if(showIt){
+                if(sensorType == SensorType.MLC){
+                    mMLCLoadButton.visibility= View.VISIBLE
+                    mUCFLoadedChip.visibility= View.VISIBLE
+                    mFsViews.visibility = View.GONE
+                    mOdrViews.visibility = View.GONE
+                }else{
+                    if (lockParams){
+                        mMLCLoadButton.visibility= View.GONE
+                        mUCFLoadedChip.visibility= View.GONE
+                        mFsViews.visibility = View.GONE
+                        mOdrViews.visibility = View.GONE
+                    } else {
+                        mMLCLoadButton.visibility= View.GONE
+                        mUCFLoadedChip.visibility= View.GONE
+                        mFsViews.visibility = View.VISIBLE
+                        mOdrViews.visibility = View.VISIBLE
+                    }
+                }
+            }else{
+                if(sensorType == SensorType.MLC) {
+                    mMLCLoadButton.visibility = View.VISIBLE
+                    mUCFLoadedChip.visibility = View.VISIBLE
+                    mFsViews.visibility = View.GONE
+                    mOdrViews.visibility = View.GONE
+                }else{
+                    mMLCLoadButton.visibility = View.GONE
+                    mUCFLoadedChip.visibility = View.GONE
+                    mFsViews.visibility = View.GONE
+                    mOdrViews.visibility = View.GONE
+                }
+            }
+        }
 
         private fun setSample(settings:SamplesPerTs,currentValue: Int?){
-            //val errorMessage = mSampleTSLayout.context.getString(R.string.subSensor_sampleErrorFromat,settings.min,settings.max)
             val inputChecker = CheckIntNumberRange(mSampleTSLayout, R.string.subSensor_sampleErrorFromat, settings.min,
                     settings.max)
             mSampleTSValue.addTextChangedListener(inputChecker)
@@ -260,9 +323,5 @@ internal class SubSensorViewAdapter(
             mIcon.setImageResource(sensorType.imageResource)
             mName.setText(sensorType.nameResource)
         }
-
     }
-
-
-
 }

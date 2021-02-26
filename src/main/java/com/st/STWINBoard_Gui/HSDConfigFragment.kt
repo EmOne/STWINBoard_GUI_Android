@@ -37,6 +37,8 @@
 package com.st.STWINBoard_Gui
 
 import android.app.Activity
+import android.app.AlertDialog
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
@@ -49,7 +51,9 @@ import androidx.lifecycle.Observer
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
+import com.st.BlueSTSDK.Features.highSpeedDataLog.FeatureHSDataLogConfig
 import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.Sensor
+import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.SensorType
 import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceParser
 import com.st.BlueSTSDK.Manager
 import com.st.BlueSTSDK.Node
@@ -84,12 +88,15 @@ open class HSDConfigFragment : Fragment() {
             onSubSensorSampleChange = {sensor, subSensor, newSampleValue ->
                 viewModel.changeSampleForTimeStamp(sensor,subSensor,newSampleValue)
             },
-            onSubSubSensorEnableStatusChange = {sensor, subSensor, newState ->
-                viewModel.changeEnableState(sensor,subSensor,newState)
+            onSubSubSensorEnableStatusChange = {sensor, subSensor, newState, paramsLocked ->
+                viewModel.changeEnableState(sensor,subSensor, newState, paramsLocked)
             },
             onSubSensorOpenMLCConf = {sensor, subSensor ->
                 loadMLCViewModel.openLoadMLCConf(sensor,subSensor)
                 requestMLCConfigFile()
+            },
+            onUCFStatusChange = {sensor, subSensor, newStatus ->
+                viewModel.changeEnableState(sensor,subSensor,newStatus,false)
             })
 
 
@@ -106,7 +113,7 @@ open class HSDConfigFragment : Fragment() {
     private fun requestMLCConfigFile() {
         val chooserFile = Intent(Intent.ACTION_GET_CONTENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
-            putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("application/*", "text/*"))//TODO make the right filter
+            putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("application/*", "text/*"))//NOTE ucf type file check is done in onActivityResult
             type = PICKFILE_UCF_REQUEST_TYPE
         }
         val chooserTitle = getString(R.string.hsdl_configFileChooserTitle)
@@ -124,7 +131,13 @@ open class HSDConfigFragment : Fragment() {
             PICKFILE_UCF_REQUEST_CODE -> {
                 val fileUri = data?.data
                 if (resultCode == Activity.RESULT_OK) {
-                    loadMLCViewModel.loadUCFFromFile(fileUri,requireContext().contentResolver)
+                    val fileUriString = fileUri.toString()
+                    if((fileUriString.substring(fileUriString.lastIndexOf("."))) == ".ucf") {
+                        loadMLCViewModel.loadUCFFromFile(fileUri, requireContext().contentResolver)
+                        viewModel.changeMLCLockedParams(true)
+                    } else {
+                        displayErrorMessage(IOConfError.InvalidFile)
+                    }
                 }
             }
             CREATE_FILE_REQUEST_CODE -> {
@@ -201,6 +214,10 @@ open class HSDConfigFragment : Fragment() {
             }
         })
 
+        viewModel.hasObsoleteFW.observe(viewLifecycleOwner, Observer { hasObsoleteFW ->
+            showObsoleteFWMessage(hasObsoleteFW)
+        })
+
         viewModel.isConfigLoading.observe(viewLifecycleOwner, Observer { isLoading ->
             showConfigLoadingView(isLoading)
         })
@@ -223,6 +240,19 @@ open class HSDConfigFragment : Fragment() {
 
     private fun showMLCLoadingView(isLoading:Boolean){
         showProgressView(isLoading,R.string.stwin_loading_ucf)
+    }
+
+    private fun showObsoleteFWMessage(hasObsoleteFW:FWErrorInfo){
+        val builder = AlertDialog.Builder(requireContext())
+        with(builder)
+        {
+            setTitle("FW version Alert!")
+            setIcon(R.drawable.ic_warning_24dp)
+            setMessage("Obsolete Firmware detected: [" + hasObsoleteFW.currFW + "].\n" +
+                    "Please update it to the latest one: [" + hasObsoleteFW.targetFW + "].\n\n" +
+                    "You can download it here: " + hasObsoleteFW.targetFWUrl)
+            show()
+        }
     }
 
     private fun showConfigLoadingView(isLoading:Boolean){

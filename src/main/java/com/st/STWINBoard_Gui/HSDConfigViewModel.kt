@@ -48,6 +48,7 @@ import com.st.BlueSTSDK.Feature
 import com.st.BlueSTSDK.Features.highSpeedDataLog.FeatureHSDataLogConfig
 import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.*
 import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.Sensor
+import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.SensorType
 import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.SubSensorDescriptor
 import com.st.BlueSTSDK.Features.highSpeedDataLog.communication.DeviceModel.SubSensorStatus
 import com.st.BlueSTSDK.Node
@@ -64,6 +65,10 @@ internal class HSDConfigViewModel : ViewModel(){
     val isConfigLoading:LiveData<Boolean>
         get() = _isConfLoading
 
+    private val _hasObsoleteFW = MutableLiveData<FWErrorInfo>()
+    val hasObsoleteFW:LiveData<FWErrorInfo>
+        get() = _hasObsoleteFW
+
     private var mCurrentConfig = mutableListOf<SensorViewData>()
     private val _boardConfiguration = MutableLiveData(mCurrentConfig.toList())
     val sensorsConfiguraiton:LiveData<List<SensorViewData>>
@@ -74,21 +79,65 @@ internal class HSDConfigViewModel : ViewModel(){
         if (sample == null)
             return@FeatureListener
 
+        val ssWId = FeatureHSDataLogConfig.getSensorStatusWId(sample)
+        if(ssWId != null){
+            val newSensor = mCurrentConfig[ssWId.sensorId!!].sensor.copy(sensorStatus = ssWId.sensorStatus!!)
+            val newSensorViewData = mCurrentConfig[ssWId.sensorId!!].copy(sensor = newSensor)
+            updateSensorConfig(newSensorViewData)
+        }
+
         val deviceConf = FeatureHSDataLogConfig.getDeviceConfig(sample) ?: return@FeatureListener
+        if(deviceConf.deviceInfo != null){
+            if(deviceConf.deviceInfo!!.fwName + deviceConf.deviceInfo!!.fwVersion !=
+                    FeatureHSDataLogConfig.LATEST_FW_NAME + FeatureHSDataLogConfig.LATEST_FW_VERSION) {
+                val curFW = deviceConf.deviceInfo!!.fwName + "_v" + deviceConf.deviceInfo!!.fwVersion
+                val targetFW = FeatureHSDataLogConfig.LATEST_FW_NAME + "_v " + FeatureHSDataLogConfig.LATEST_FW_VERSION
+                val targetFWUrl = FeatureHSDataLogConfig.LATEST_FW_URL
+                _hasObsoleteFW.postValue(FWErrorInfo(curFW, targetFW, targetFWUrl))
+            }
+        }
         val newConfiguration = mutableListOf<SensorViewData>()
         val sensors = deviceConf.sensors ?: return@FeatureListener
         newConfiguration.addAll(sensors.map { it.toSensorViewData() })
         if(mCurrentConfig != newConfiguration){
+            Log.e("TAG", "DeviceConfig changed!")
+            if(mCurrentConfig.size > 0) {
+                val collapsedMap = mutableMapOf<String, Boolean>()
+                for (s in mCurrentConfig) {
+                    collapsedMap[s.sensor.name] = s.isCollapsed
+                }
+                for (s in newConfiguration) {
+                    s.isCollapsed = collapsedMap[s.sensor.name]!!
+                }
+            }
             mCurrentConfig = newConfiguration
             _isConfLoading.postValue(false)
             _boardConfiguration.postValue(mCurrentConfig.toList())
         }
     }
 
+    private fun getMLCSensorID(subSensorDescriptorList:List<SubSensorDescriptor>):Int {
+        for (ssd in subSensorDescriptorList){
+            if (ssd.sensorType == SensorType.MLC){
+                return ssd.id
+            }
+        }
+        return -1
+    }
+
     private fun Sensor.toSensorViewData(): SensorViewData {
+        val mlcId = getMLCSensorID(this.sensorDescriptor.subSensorDescriptors)
+        if (mlcId != -1) {
+            return SensorViewData(
+                    sensor = this,
+                    isCollapsed = true,
+                    hasLockedParams = this.sensorStatus.subSensorStatusList[mlcId].isActive && this.sensorStatus.subSensorStatusList[mlcId].ucfLoaded
+            )
+        }
         return SensorViewData(
                 sensor = this,
-                isCollapsed = true
+                isCollapsed = true,
+                hasLockedParams = false
                 )
     }
 
@@ -267,13 +316,46 @@ internal class HSDConfigViewModel : ViewModel(){
         _boardConfiguration.postValue(mCurrentConfig.toList())
     }
 
-    fun changeEnableState(sensor: Sensor, subSensor: SubSensorDescriptor, newState: Boolean) {
+    fun changeEnableState(sensor: Sensor, subSensor: SubSensorDescriptor, newState: Boolean, paramsLocked: Boolean) {
         Log.d("ConfigVM","onSubSensorEnableChange ${sensor.id} -> ${subSensor.id} -> $newState")
         val paramList = listOf(IsActiveParam(subSensor.id,newState))
         val ssIsActiveCmd = HSDSetSensorCmd(sensor.id, paramList)
         mHSDConfigFeature?.sendSetCmd(ssIsActiveCmd)
         getSubSensorStatus(sensor.id,subSensor.id)?.isActive = newState
-        _boardConfiguration.postValue(mCurrentConfig.toList())
+        if (subSensor.sensorType == SensorType.MLC) {
+            val newSensorStatus = mCurrentConfig[sensor.id].sensor.sensorStatus.copy(paramsLocked = paramsLocked)
+            val newSensor = mCurrentConfig[sensor.id].sensor.copy(sensorStatus = newSensorStatus)
+            val newSensorViewData = mCurrentConfig[sensor.id].copy(hasLockedParams = paramsLocked, sensor = newSensor)
+            updateSensorConfig(newSensorViewData)
+        }
+        else {
+            _boardConfiguration.postValue(mCurrentConfig.toList())
+        }
+    }
+
+    fun changeMLCLockedParams(newState: Boolean){
+        Log.d("ConfigVM","refreshDevice")
+        var mlcSId = -1
+        var mlcSsId = -1
+        for(sc in mCurrentConfig){
+            for(sd in sc.sensor.sensorDescriptor.subSensorDescriptors){
+                if (sd.sensorType == SensorType.MLC){
+                    mlcSId = sc.sensor.id
+                    mlcSsId = sd.id
+                }
+            }
+        }
+        val newSubSensorStatusList: MutableList<SubSensorStatus> = mutableListOf()
+        for (i in mCurrentConfig[mlcSId].sensor.sensorStatus.subSensorStatusList.indices)
+            newSubSensorStatusList += if (i == mlcSsId)
+                mCurrentConfig[mlcSId].sensor.sensorStatus.subSensorStatusList[i].copy(ucfLoaded = newState)
+            else
+                mCurrentConfig[mlcSId].sensor.sensorStatus.subSensorStatusList[i].copy()
+        val newSensorStatus = mCurrentConfig[mlcSId].sensor.sensorStatus.copy(subSensorStatusList = newSubSensorStatusList)
+        val newSensor = mCurrentConfig[mlcSId].sensor.copy(sensorStatus = newSensorStatus)
+        val newSensorViewData = mCurrentConfig[mlcSId].copy(sensor = newSensor)
+        updateSensorConfig(newSensorViewData)
+        return
     }
 
     private fun setCurrentConfAsDefault() {
@@ -293,10 +375,7 @@ internal class HSDConfigViewModel : ViewModel(){
     }
 
     private fun updateSensorConfig(newSensor: SensorViewData) {
-        val sensorIndex = mCurrentConfig.indexOfFirst {
-            it.sensor == newSensor.sensor
-        }
-        mCurrentConfig[sensorIndex] = newSensor
+        mCurrentConfig[newSensor.sensor.id] = newSensor
         _boardConfiguration.postValue(mCurrentConfig.toList())
     }
 
@@ -311,5 +390,4 @@ internal class HSDConfigViewModel : ViewModel(){
         val newSensor = selected.copy(isCollapsed = false)
         updateSensorConfig(newSensor)
     }
-
 }

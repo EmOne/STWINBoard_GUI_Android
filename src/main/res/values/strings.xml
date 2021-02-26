@@ -39,4 +39,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="confDialog_cancel">Cancel</string>
     <string name="confDialog_save">Save</string>
+    <string name="ucf_file_loaded">valid ucf file loaded</string>
+    <string name="ucf_file_not_loaded">ucf file not loaded</string>
 </resources>

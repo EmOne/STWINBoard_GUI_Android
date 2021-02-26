@@ -40,28 +40,44 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_margin="8dp">
+    android:layout_height="wrap_content">
 
-    <ImageView
-        android:id="@+id/subSensor_icon"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_gravity="center"
-        android:layout_marginEnd="4dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:src="@drawable/sensor_type_unknown"
-        app:layout_constraintStart_toStartOf="@+id/subSensor_name"
-        app:layout_constraintTop_toBottomOf="@+id/subSensor_name" />
-
-    <Switch
-        android:id="@+id/subSensor_enable"
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_margin="8dp">
 
+        <ImageView
+            android:id="@+id/subSensor_icon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center"
+            android:layout_marginEnd="4dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:src="@drawable/sensor_type_unknown"
+            app:layout_constraintStart_toStartOf="@+id/subSensor_name"
+            app:layout_constraintTop_toBottomOf="@+id/subSensor_name" />
+
+        <Switch
+            android:id="@+id/subSensor_enable"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </LinearLayout>
+    <Button
+        android:id="@+id/subSensorPreview_MLCLoadButton"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/subSensor_load_mlc"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/subSensor_sampleTSLayout"
+        app:layout_constraintTop_toBottomOf="@+id/subSensor_sampleTSLayout" />
 </LinearLayout>

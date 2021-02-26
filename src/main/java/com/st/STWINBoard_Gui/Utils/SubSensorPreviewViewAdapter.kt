@@ -40,6 +40,7 @@ package com.st.STWINBoard_Gui.Utils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.CompoundButton
 import android.widget.ImageView
 import android.widget.Switch
@@ -52,7 +53,8 @@ import com.st.clab.stwin.gui.R
 
 internal class SubSensorPreviewViewAdapter(
         private val sensor: Sensor,
-        private val onSubSensorEnableStatusChange: OnSubSensorEnableStatusChange
+        private val onSubSensorEnableStatusChange: OnSubSensorEnableStatusChange,
+        private val onSubSensorOpenMLCConf: OnSubSensorOpenMLCConf
         ) : RecyclerView.Adapter<SubSensorPreviewViewAdapter.ViewHolder>() {
 
     //SubParam List
@@ -79,6 +81,7 @@ internal class SubSensorPreviewViewAdapter(
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val mIcon: ImageView = itemView.findViewById(R.id.subSensor_icon)
         private val mEnabledSwitch:Switch = itemView.findViewById(R.id.subSensor_enable)
+        private val mLoadUCFButton:Button = itemView.findViewById(R.id.subSensorPreview_MLCLoadButton)
 
         private var mSubSensor:SubSensorDescriptor? = null
         private var mSubSensorStatus:SubSensorStatus? = null
@@ -86,14 +89,34 @@ internal class SubSensorPreviewViewAdapter(
         private val onCheckedChangeListener  = object : CompoundButton.OnCheckedChangeListener{
             override fun onCheckedChanged(buttonView: CompoundButton?, isChecked: Boolean) {
                 val subSensor = mSubSensor ?: return
-                onSubSensorEnableStatusChange(sensor,subSensor,isChecked)
+                var paramsLocked = sensor.sensorStatus.paramsLocked
+                if (mSubSensor!!.sensorType == SensorType.MLC){
+                    if(isChecked) {
+                        if (mSubSensorStatus!!.ucfLoaded) {
+                            paramsLocked = true
+                        }
+                    } else {
+                        paramsLocked = false
+                    }
+                }
+                onSubSensorEnableStatusChange(sensor,subSensor,isChecked,paramsLocked)
             }
+        }
+
+        init {
+            mLoadUCFButton.setOnClickListener(object : View.OnClickListener {
+                override fun onClick(view: View?) {
+                    val subSensor = mSubSensor ?: return
+                    onSubSensorOpenMLCConf(sensor, subSensor)
+                }
+            })
         }
 
         fun bind(subSensor:SubSensorDescriptor, status: SubSensorStatus){
             mSubSensor = subSensor
             mSubSensorStatus = status
             setSensorData(subSensor.sensorType)
+            setEnabledUCFStatus(subSensor.sensorType, status.ucfLoaded)
             setEnableState(status.isActive)
         }
 
@@ -103,8 +126,18 @@ internal class SubSensorPreviewViewAdapter(
             mEnabledSwitch.setOnCheckedChangeListener(onCheckedChangeListener)
         }
 
+        private fun setEnabledUCFStatus(sensorType:SensorType, ucfLoaded:Boolean){
+            if (sensorType == SensorType.MLC) {
+                mEnabledSwitch.isEnabled = ucfLoaded
+            }
+        }
+
         private fun setSensorData(sensorType: SensorType) {
             mIcon.setImageResource(sensorType.imageResource)
+            if (sensorType == SensorType.MLC)
+                mLoadUCFButton.visibility = View.VISIBLE
+            else
+                mLoadUCFButton.visibility = View.GONE
         }
     }
 }
