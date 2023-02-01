@@ -72,6 +72,7 @@ android {
     kotlinOptions {
         jvmTarget = rootProject.ext.javaVersion.toString()
     }
+    namespace 'com.st.clab.stwin.gui'
 
 }
 
